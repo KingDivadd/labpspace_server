@@ -1,0 +1,48 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+ 
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User  {
+  user_id                         String          @id @default(uuid()) @unique
+
+  first_name                      String
+  last_name                       String
+  business_name                   String? 
+  email                           String          @unique
+  password                        String
+  user_role                       Role
+
+  code                            String
+  phone                           String
+  city                            String?
+  state                           String?
+  zip                             String?
+  address                         String
+  is_verified                     Boolean        @default(true)
+  is_active                       Boolean        @default(true)
+  sessions                        Session[]
+  
+  created_at                      Decimal
+  updated_at                      Decimal
+}
+
+enum Role {
+  admin
+  user
+}
+
+model Session {
+  session_id                      String          @id @default(uuid()) @unique
+
+  user                            User?        @relation(fields: [user_id], references: [user_id])
+  user_id                         String?   
+
+  created_at                      Decimal
+  updated_at                      Decimal
+}
