@@ -1,48 +1,232 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
- 
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-model User  {
-  user_id                         String          @id @default(uuid()) @unique
 
+model User {
+  user_id                         String         @id @default(uuid()) @unique
   first_name                      String
   last_name                       String
-  business_name                   String? 
-  email                           String          @unique
+  avatar                          String?
+  title                           String?
+  email                           String         @unique
   password                        String
-  user_role                       Role
-
-  code                            String
-  phone                           String
-  city                            String?
-  state                           String?
-  zip                             String?
-  address                         String
-  is_verified                     Boolean        @default(true)
+  is_admin                        Boolean        @default(false)
+  role                            String
   is_active                       Boolean        @default(true)
+  is_trashed                      Boolean        @default(false)
+
   sessions                        Session[]
+  created_by                      Activity[]    
+  task_creator                    Task[]    
+  tasks                           TaskAssignment[] // Updated relation for task assignments
+  notifications                   NotificationAssignment[]
+  deleted_user                    Trash[]
+  deleted_by                      Trash[]        @relation("deleted_by_user")
+  added_by                        PaymentHistory[]
+  sub_task_created_by             SubTask[]   
+
+  created_at                      Decimal
+  updated_at                      Decimal
+}
+
+model Task {
+  task_id                           String          @id @default(uuid()) @unique
+  task_ind                          String
+
+  task_creator                      User           @relation(fields: [task_creator_id], references: [user_id])
+  task_creator_id                   String         
+  cost                              Float           @default(0)
+
+  task_title                        String
+  priority                          Priority        @default(normal)
+  stage                             Stage           @default(todo)
+  assets                            Json?           @default("[]")
+
+  activities                        Activity[]
+  sub_tasks                         SubTask[]
+  deleted_trash                     Trash[]
+
+  team                              TaskAssignment[] // Updated relation for task assignments
+
+  is_trashed                        Boolean         @default(false)
+
+  notifications                     Notification[]
+  payments                          PaymentHistory[]
+
+  created_at                        Decimal       
+  updated_at                        Decimal
+}
+
+model TaskAssignment {
+  taskAssignment_id                 String         @id @default(uuid()) @unique
+
+  task                              Task           @relation(fields: [task_id], references: [task_id])
+  task_id                           String         // Foreign key to Task model
+
+  user                              User           @relation(fields: [user_id], references: [user_id])
+  user_id                           String         // Foreign key to User model
+
+  assigned_at                       Decimal        // When the user was assigned to the task
+  role                              String?      @default(value: "contributor")   // Role of the user in the task (e.g., reviewer, contributor)
+
+  created_at                        Decimal
+  updated_at                        Decimal
+}
+
+model PaymentHistory {
+  payment_id                       String          @id @default(uuid()) @unique
+
+  task                             Task            @relation(fields: [task_id], references: [task_id])
+  task_id                          String
+
+  added_by                         User            @relation(fields: [added_by_id], references: [user_id])
+  added_by_id                      String          // User who adds the payment
+
+  payer_name                       String          // Name of the person making the payment
+
+  amount                           Float           // Payment amount
+  payment_receipt                  Json?           @default("[]")
+
+  notifications                    Notification[]
+
+  created_at                       Decimal
+  updated_at                       Decimal
+}
+
+
+model Activity {
+  activity_id                       String         @id @default(uuid()) @unique
+  activity_type                     Activities      @default(assigned)
+  description                       String?
+  date                              Decimal?
+
+  created_by                        User           @relation(fields: [created_by_id], references: [user_id])
+  created_by_id                     String         
+
+  task                              Task           @relation(fields: [task_id], references: [task_id])
+  task_id                           String         
+
+  created_at                        Decimal      
+  updated_at                        Decimal
+}
+
+model SubTask {
+  sub_task_id                       String         @id @default(uuid()) @unique
+  title                             String
+  due_date                          Decimal?
+  tag                               String?
+  
+  sub_task_created_by               User?          @relation(fields: [sub_task_created_by_id], references: [user_id])
+  sub_task_created_by_id            String?
+
+  task                              Task           @relation(fields: [task_id], references: [task_id])
+  task_id                           String         
+
+  created_at                        Decimal       
+  updated_at                        Decimal       
+}
+
+model Session {
+  session_id                        String         @id @default(uuid()) @unique
+
+  user                              User?          @relation(fields: [user_id], references: [user_id])
+  user_id                           String?
+
+  created_at                        Decimal
+  updated_at                        Decimal
+}
+
+enum Activities {
+  created
+  assigned
+  updated
+  started
+  in_progress
+  bug
+  completed
+  commented
+}
+
+enum Priority {
+  high
+  medium
+  normal
+  low
+}
+
+enum Stage {
+  todo
+  completed
+  in_progress
+}
+
+
+model Notification {
+  notification_id                 String          @id @default(uuid()) @unique
+
+  status                          NotificationStatus     @default(pending)
+
+  notification_type               NotificationType
+
+  notification_sub_type           String
+
+  task                            Task?           @relation(fields: [task_id], references: [task_id])
+  task_id                         String?
+
+  payment                         PaymentHistory?           @relation(fields: [payment_id], references: [payment_id])
+  payment_id                      String?
+
+  team                            NotificationAssignment[] // Make this field optional
   
   created_at                      Decimal
   updated_at                      Decimal
 }
 
-enum Role {
-  admin
-  user
+enum NotificationStatus {
+  pending
+  in_progress
+  completed
 }
 
-model Session {
-  session_id                      String          @id @default(uuid()) @unique
+enum NotificationType {
+  user
+  task
+  payment
+}
 
-  user                            User?        @relation(fields: [user_id], references: [user_id])
-  user_id                         String?   
+model NotificationAssignment {
+  notificationAssignment_id         String          @id @default(uuid()) @unique
 
-  created_at                      Decimal
-  updated_at                      Decimal
+  is_read                           Boolean?        @default(false)
+
+  notification                      Notification    @relation(fields: [notification_id], references: [notification_id]) 
+  notification_id                   String          
+
+  user                              User    @relation(fields: [user_id], references: [user_id])
+  user_id                           String          
+
+  created_at                        Decimal
+  updated_at                        Decimal
+}
+
+model Trash {
+  trash_id                          String          @id @default(uuid()) @unique
+
+  deleted_by                        User?           @relation("deleted_by_user", fields: [deleted_by_id], references: [user_id])
+  deleted_by_id                     String?       
+
+  deleted_user                      User?           @relation(fields: [deleted_user_id], references: [user_id])
+  deleted_user_id                   String?       
+
+  deleted_task                      Task?           @relation(fields: [deleted_task_id], references: [task_id])
+  deleted_task_id                   String?       
+
+  created_at                        Decimal
+  updated_at                        Decimal
 }

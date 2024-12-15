@@ -8,25 +8,17 @@ const jwt = require('jsonwebtoken')
 export const email_exist = async(req: Request, res: Response, next: NextFunction)=>{
     const {email, business_name} = req.body
     try {
-        const [user, buz_name] = await Promise.all([
-            prisma.user.findUnique({where: {email}}),
-            prisma.user.findFirst({where: {
-            business_name: {
-            equals: business_name, mode: 'insensitive', }
-            }})
-        ]) 
+        const user = await prisma.user.findUnique({where: {email}})
 
         if (user ){
             return res.status(409).json({ err: 'email already registered to another user' })
         }
 
-        if(buz_name){ return res.status(409).json({err: 'Business name already taken!'}) }
-
         return next()
 
     } catch (err:any) {
-        console.log('Error occured while checking if email exist ', err)
-        return res.status(500).json({err: 'Error occured while checking if email exist ', error: err})
+        console.log('Error occured while checking email availability ', err)
+        return res.status(500).json({err: 'Error occured while checking email availability ', error: err})
         
     }
 }
@@ -35,16 +27,16 @@ export const verify_otp_status = async (req: CustomRequest, res: Response, next:
     const {email} = req.body
     try {
 
-
         const value: any = await getFromRedis(`${email}`)
         if (!value){
-            return res.status(401).json({err: "OTP session id has expired, generate a new OTP and re verify..."})
+            return res.status(401).json({err: "OTP has expired, kindly generate a new one"})
         }
         const otp_data = await jwt.verify(value, jwt_secret)
         req.otp_data = otp_data
         req.user_email = otp_data.email
 
         return next()
+
     } catch (err: any) {
         if (err.name === 'TokenExpiredError') {
             return res.status(410).json({ err: `jwt token expired, generate and verify OTP`, error:err })
@@ -90,15 +82,14 @@ export const verify_auth_id = async (req: CustomRequest, res: Response, next: Ne
         const value = await getFromRedis(`${auth_id}`)
         
         if (!value) {
-            return res.status(401).json({ err: `auth session id expired, please generate otp`})
+            return res.status(401).json({ err: `session id expired, please login`})
         }        
         
         const decode_value = await jwt.verify(value, jwt_secret)        
         
         const user_id = decode_value.user.user_id || null
-        const physician_id =decode_value.user.physician_id || null
         
-        if (user_id == null && physician_id == null){
+        if (user_id == null ){
             return res.status(401).json({err: 'Please enter the correct x-id-key'})
         }
         

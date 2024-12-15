@@ -5,7 +5,7 @@ const check_network_availability = async (req: Request, res: Response, next: Nex
     try {
         dns.resolve('www.google.com', (err) => {
             if (err) {
-                return res.status(503).json({ error: 'Network unavailable, check network connection and try again' });
+                return res.status(503).json({ err: 'Network unavailable, check network connection and try again' });
             } else {
                 next();
             }

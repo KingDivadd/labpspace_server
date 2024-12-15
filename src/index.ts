@@ -14,7 +14,6 @@ import connect_to_mongo_db from './config/mongodb';
 import index from './routes/index'
 import not_found from  './middlewares/not_found'
 import check_network_availability from './middlewares/network_availability'
-import { chat_validation, notification_validation, video_validation } from './validations';
 import { check_user_availability, socket_verify_auth_id } from './helpers/auth_helper';
 import prisma from './helpers/prisma_initializer';
 import converted_datetime, { readable_date } from './helpers/date_time_elements';
@@ -54,12 +53,11 @@ app.use(not_found);
 
 
 
-
 const start = async () => {
-    const PORT = port || 4000;
+    const PORT = port || 5000;
     try {
         await connect_to_mongo_db();
-        server.listen(PORT, () => console.log(`EaseCredit server started and running on port ${PORT}`.cyan.bold));
+        server.listen(PORT, () => console.log(`Labspace server started and running on port ${PORT}`.cyan.bold));
     } catch (err) {
         console.log(`something went wrong`.red.bold);
     }

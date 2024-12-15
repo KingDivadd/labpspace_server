@@ -1,5 +1,5 @@
 {
-    "name": "easecredit",
+    "name": "fintaza",
     "version": "1.0.0",
     "description": "",
     "main": "dist/index.js",
@@ -47,6 +47,7 @@
         "web-push": "^3.6.7"
     },
     "devDependencies": {
+        "@types/nodemailer": "^6.4.17",
         "@types/uuid": "^9.0.8"
     }
 }
