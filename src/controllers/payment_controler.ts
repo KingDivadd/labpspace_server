@@ -27,7 +27,7 @@ export const all_paginated_payments = async(req: CustomRequest, res: Response)=>
 
             prisma.task.findMany({
                 select:{cost: true, task_title: true, task_ind: true, task_id:true},
-                orderBy:{created_at:'asc'}
+                orderBy:{created_at:'desc'}
             })
 
         ])
