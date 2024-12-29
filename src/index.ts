@@ -55,7 +55,7 @@ app.use(not_found);
 
 setInterval(() => {
     retain_connection()
-}, 29000);
+}, 45000);
 
 const start = async () => {
     const PORT = port || 5000;

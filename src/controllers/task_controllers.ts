@@ -75,7 +75,7 @@ export const all_paginated_todo_tasks = async(req: CustomRequest, res: Response)
                         },
                     },
                 },
-                orderBy:{created_at: 'asc'},
+                orderBy:{created_at: 'desc'},
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
             }),
             
@@ -162,7 +162,7 @@ export const all_paginated_tasks = async (req: CustomRequest, res: Response) => 
                         select: { amount: true }
                     }
                 },
-                orderBy: { created_at: 'asc' },
+                orderBy: { created_at: 'desc' },
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
             }),
 

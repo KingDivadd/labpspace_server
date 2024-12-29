@@ -90,7 +90,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                         },
                     },
                 },
-                orderBy:{created_at: 'asc'},
+                orderBy:{created_at: 'desc'},
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
             }),
             
