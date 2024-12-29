@@ -17,6 +17,7 @@ import check_network_availability from './middlewares/network_availability'
 import { check_user_availability, socket_verify_auth_id } from './helpers/auth_helper';
 import prisma from './helpers/prisma_initializer';
 import converted_datetime, { readable_date } from './helpers/date_time_elements';
+import { retain_connection } from './controllers/test_connection';
 
 
 dotenv.config();
@@ -52,6 +53,9 @@ app.use('/api/v1/app', index);
 app.use(not_found);
 
 
+setInterval(() => {
+    retain_connection()
+}, 29000);
 
 const start = async () => {
     const PORT = port || 5000;

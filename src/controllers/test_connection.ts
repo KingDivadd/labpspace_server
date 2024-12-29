@@ -30,3 +30,25 @@ export const test_db_connection = async(req: Request, res: Response, next: NextF
         return res.status(500).json({err: 'Error occured in test db connection controller ', error: err})
     }
 }
+
+export const retain_connection = async()=>{
+    try {
+        
+        const tasks = await prisma.taskAssignment.findMany({
+            include: {
+                task: {
+                    include: {
+                        sub_tasks: true, 
+                        team: true
+                    }
+                }
+            },
+            orderBy: {created_at: 'desc'}
+        })
+
+        return {tasks, status: 200}
+
+    } catch (err:any) {
+        return {msg: 'Error maintaining server continuous server connection', status: 500}
+    }
+}
