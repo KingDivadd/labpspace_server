@@ -20,6 +20,7 @@ model User {
   role                            String
   is_active                       Boolean        @default(true)
   is_trashed                      Boolean        @default(false)
+  subscription                    String         @default("")
 
   sessions                        Session[]
   created_by                      Activity[]    

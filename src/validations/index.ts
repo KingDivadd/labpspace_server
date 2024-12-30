@@ -271,3 +271,24 @@ export const payment_validation = async (req: Request, res: Response, next: Next
         
     }
 }
+
+export const save_subscription_validation = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const schema = Joi.object({
+            subscription: Joi.string().trim().required()
+        })
+
+        const { error: validation_error } = schema.validate(req.body)
+
+        if (validation_error) {
+            const error_message = validation_error.message.replace(/"/g, '');
+            return res.status(400).json({ err: error_message });
+        }
+
+        return next()
+
+    } catch (err:any) {
+        console.log('Error occured while validating save subscription ',err)
+        return res.status(422).json({err: 'Error occured while validating save subscription ', error: err})
+    }
+}

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import prisma from '../helpers/prisma_initializer'
 import { CustomRequest } from '../helpers/interface';
 import converted_datetime from '../helpers/date_time_elements';
-
+import webpush from 'web-push'
 
 export const welcome_notification_2 = async(req: Request, res: Response)=>{
     try {
@@ -122,3 +122,67 @@ export const read_notification = async(req: CustomRequest, res: Response)=>{
         
     }
 }
+
+
+export const save_subscription = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const { subscription } = req.body;
+
+    try {
+        const user_id = req.account_holder.user.user_id
+
+        const save_subscription = await prisma.user.update({
+            where:{user_id},
+            data: {
+                subscription,
+                updated_at: converted_datetime(),
+            },
+        })
+            
+        return res.status(201).json({ msg: 'New subscription added' });
+    } catch (error) {
+        console.error('Error saving subscription:', error);
+        return res.status(500).json({ error: 'Error saving subscription' });
+    }
+};
+
+export const push_notification = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const {url} = req.body
+    try {
+        
+        if (!url || url == ''){
+            req.body.url = '/'
+        }
+
+        // const { title, body, avatar, message, data, user_id, } = req.pushNotificationData;
+
+        const title = 'Title'; const body = 'This is the body'; const avatar = 'https://res.cloudinary.com/iroegbu-cloud-1/image/upload/v1735049324/rzhdxrwgldpldjpqdzcw.jpg'; const user_id = 'c229d9d2-79df-4939-827a-f7e28ba46db8'
+
+        const payloadData = { title, body, icon: avatar, url: req.body.url };
+
+        // Send web push notification separately
+        const user_subscription = await prisma.user.findUnique({
+            where: { user_id}, 
+            select: {subscription:true}
+        });
+
+        if (user_subscription) {
+            const payload = JSON.stringify(payloadData);
+            try {
+                await webpush.sendNotification(JSON.parse(user_subscription.subscription), payload);
+                console.log('Web push notification sent successfully');
+            } catch (err) {
+                console.error('Error sending web push notification:', err);
+            }
+        } else {
+            console.warn('Receiver\'s subscription was not found.');
+        }
+
+        // Send the response after attempting to send notifications
+        return res.status(200).json({ msg: title,  });
+
+        
+    } catch (err: any) {
+        console.log('Error occurred during sending of web push notification, error:', err);
+        return res.status(500).json({ err: 'Error occurred during sending of web push notification', error: err });
+    }
+};

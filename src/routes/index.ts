@@ -28,7 +28,8 @@ import {
         payment_validation,
         avatar_validation,
         sub_task_validation,
-        activity_validation, } from '../validations/index'
+        activity_validation,
+        save_subscription_validation, } from '../validations/index'
 
 import { 
         email_exist,
@@ -48,7 +49,9 @@ import {
 
 import {
         paginated_user_notification,
+        push_notification,
         read_notification,
+        save_subscription,
         unread_user_notification,
         welcome_notification_2} from '../controllers/notification'
 
@@ -75,6 +78,8 @@ const router = express.Router()
 router.route('/signup').post(signup_validation, email_exist, signup)
 
 router.route('/login').post(login_validation, login, )
+
+router.route('/save-subscription').post(verify_auth_id, save_subscription_validation, save_subscription)
 
 router.route('/persist-login').post(verify_auth_id, persist_login, )
 
@@ -148,6 +153,8 @@ router.route('/restore-trash/:trash_id').patch(verify_auth_id, restore_selected_
 
 
 // Test Connections
+
+router.route('/test-push-notification').get(push_notification)
 
 router.route('/test-basic-connection').get(test_basic_connection)
 
