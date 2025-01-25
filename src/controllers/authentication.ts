@@ -40,9 +40,9 @@ export const signup = async(req: Request, res: Response, next: NextFunction)=>{
 
 export const register_user = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     try {
-        const logged_in_user = req.account_holder.user
+        const is_admin = req.account_holder.user.is_admin
         
-        if (!logged_in_user.role) {
+        if (!is_admin) {
             return res.status(401).json({err: 'Only admins are allowed to register a new user.'})
         }
         const encrypted_password = await bcrypt.hash(req.body.password, salt_round);
