@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
-import { email_password, email_username } from './constants';
+import { email_password, email_username, sendgrid_api_key } from './constants';
+// Import the SendGrid library
+const sgMail = require('@sendgrid/mail');
+
 
 // Setup the email transporter
 const transporter = nodemailer.createTransport({
@@ -399,3 +402,38 @@ const handle_email_response = (error: any, info: any, email: string) => {
         console.log(`Email successfully sent to ${email}:`, info.response);
     }
 };
+
+
+// -----------testing sendgrid emails fnction
+
+// Set your SendGrid API Key
+const SENDGRID_API_KEY = sendgrid_api_key;
+
+
+// Set the API key
+sgMail.setApiKey('SG.sendgrid_api_key');
+
+// Define the email parameters
+const sendEmail = async () => {
+    try {
+        const msg = {
+            to: 'ireugbudavid@gmail.com', // Change to your recipient
+            from: 'iroegbu.dg@gmail.com', // Change to your verified sender
+            subject: 'Hello from SendGrid!',
+            text: 'This is a plain text message.',
+            html: '<strong>This is an HTML message!</strong>',
+        };
+
+        // Send the email
+        const response = await sgMail.send(msg);
+        console.log('Email sent successfully:', response);
+    } catch (error:any) {
+        console.error('Error sending email:', error.message);
+        if (error.response) {
+        console.error('Error details:', error.response.body);
+        }
+    }
+};
+
+// Call the function to send the email
+// sendEmail();

@@ -16,44 +16,44 @@ model User {
   title                           String?
   email                           String         @unique
   password                        String
+  is_super_admin                  Boolean        @default(false)
   is_admin                        Boolean        @default(false)
-  role                            String
   is_active                       Boolean        @default(true)
   is_trashed                      Boolean        @default(false)
   subscription                    String         @default("")
 
   sessions                        Session[]
   created_by                      Activity[]    
-  task_creator                    Task[]    
-  tasks                           TaskAssignment[] // Updated relation for task assignments
+  project_creator                 Project[]    
+  tasks                           ProjectAssignment[] // Updated relation for task assignments
   notifications                   NotificationAssignment[]
   deleted_user                    Trash[]
   deleted_by                      Trash[]        @relation("deleted_by_user")
   added_by                        PaymentHistory[]
-  sub_task_created_by             SubTask[]   
+  task_created_by                 Task[]   
 
   created_at                      Decimal
   updated_at                      Decimal
 }
 
-model Task {
-  task_id                           String          @id @default(uuid()) @unique
-  task_ind                          String
+model Project {
+  project_id                        String          @id @default(uuid()) @unique
+  project_ind                       String
 
-  task_creator                      User           @relation(fields: [task_creator_id], references: [user_id])
-  task_creator_id                   String         
+  project_creator                   User           @relation(fields: [project_creator_id], references: [user_id])
+  project_creator_id                String         
   cost                              Float           @default(0)
 
-  task_title                        String
+  project_title                     String
   priority                          Priority        @default(normal)
   stage                             Stage           @default(todo)
   assets                            Json?           @default("[]")
 
   activities                        Activity[]
-  sub_tasks                         SubTask[]
-  deleted_trash                     Trash[]
+  tasks                             Task[]
+  deleted_project                   Trash[]
 
-  team                              TaskAssignment[] // Updated relation for task assignments
+  team                              ProjectAssignment[] // Updated relation for task assignments
 
   is_trashed                        Boolean         @default(false)
 
@@ -64,17 +64,17 @@ model Task {
   updated_at                        Decimal
 }
 
-model TaskAssignment {
-  taskAssignment_id                 String         @id @default(uuid()) @unique
+model ProjectAssignment {
+  projectAssignment_id              String         @id @default(uuid()) @unique
 
-  task                              Task           @relation(fields: [task_id], references: [task_id])
-  task_id                           String         // Foreign key to Task model
+  project                           Project           @relation(fields: [project_id], references: [project_id])
+  project_id                        String         
 
   user                              User           @relation(fields: [user_id], references: [user_id])
-  user_id                           String         // Foreign key to User model
+  user_id                           String        
 
   assigned_at                       Decimal        // When the user was assigned to the task
-  role                              String?      @default(value: "contributor")   // Role of the user in the task (e.g., reviewer, contributor)
+  role                              String?        @default(value: "contributor")   // Role of the user in the task (e.g., reviewer, contributor)
 
   created_at                        Decimal
   updated_at                        Decimal
@@ -83,13 +83,13 @@ model TaskAssignment {
 model PaymentHistory {
   payment_id                       String          @id @default(uuid()) @unique
 
-  task                             Task            @relation(fields: [task_id], references: [task_id])
-  task_id                          String
+  project                          Project         @relation(fields: [project_id], references: [project_id])
+  project_id                       String
 
   added_by                         User            @relation(fields: [added_by_id], references: [user_id])
-  added_by_id                      String          // User who adds the payment
+  added_by_id                      String          
 
-  payer_name                       String          // Name of the person making the payment
+  payer_name                       String          
 
   amount                           Float           // Payment amount
   payment_receipt                  Json?           @default("[]")
@@ -110,24 +110,24 @@ model Activity {
   created_by                        User           @relation(fields: [created_by_id], references: [user_id])
   created_by_id                     String         
 
-  task                              Task           @relation(fields: [task_id], references: [task_id])
-  task_id                           String         
+  project                           Project           @relation(fields: [project_id], references: [project_id])
+  project_id                        String         
 
   created_at                        Decimal      
   updated_at                        Decimal
 }
 
-model SubTask {
-  sub_task_id                       String         @id @default(uuid()) @unique
+model Task {
+  task_id                           String         @id @default(uuid()) @unique
   title                             String
   due_date                          Decimal?
-  tag                               String?
+  is_completed                      Boolean        @default(false)
   
-  sub_task_created_by               User?          @relation(fields: [sub_task_created_by_id], references: [user_id])
-  sub_task_created_by_id            String?
+  task_created_by                   User?          @relation(fields: [task_created_by_id], references: [user_id])
+  task_created_by_id                String?
 
-  task                              Task           @relation(fields: [task_id], references: [task_id])
-  task_id                           String         
+  project                           Project           @relation(fields: [project_id], references: [project_id])
+  project_id                        String         
 
   created_at                        Decimal       
   updated_at                        Decimal       
@@ -177,8 +177,8 @@ model Notification {
 
   notification_sub_type           String
 
-  task                            Task?           @relation(fields: [task_id], references: [task_id])
-  task_id                         String?
+  project                         Project?           @relation(fields: [project_id], references: [project_id])
+  project_id                      String?
 
   payment                         PaymentHistory?           @relation(fields: [payment_id], references: [payment_id])
   payment_id                      String?
@@ -225,8 +225,8 @@ model Trash {
   deleted_user                      User?           @relation(fields: [deleted_user_id], references: [user_id])
   deleted_user_id                   String?       
 
-  deleted_task                      Task?           @relation(fields: [deleted_task_id], references: [task_id])
-  deleted_task_id                   String?       
+  deleted_project                   Project?           @relation(fields: [deleted_project_id], references: [project_id])
+  deleted_project_id                String?       
 
   created_at                        Decimal
   updated_at                        Decimal

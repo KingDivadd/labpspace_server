@@ -28,7 +28,7 @@ export const unread_user_notification = async(req: CustomRequest, res: Response)
             },
             include: {
                 notification: {
-                    include: {task: true, team: true, }
+                    include: {project: true, team: true, }
                 }
             },
             orderBy: {created_at: 'desc'}
@@ -62,7 +62,7 @@ export const paginated_user_notification = async (req:CustomRequest, res: Respon
                 include: {
                     notification: {
                         include: {
-                            task: {
+                            project: {
                                 include:{
                                     team:{
                                         include:{

@@ -19,7 +19,7 @@ import {
 import {
         generate_otp_validation,
         login_validation,
-        task_validation,
+        project_validation,
         new_user_validation,
         profile_validation,
         reset_password_validation,
@@ -27,7 +27,7 @@ import {
         verify_otp_validation,
         payment_validation,
         avatar_validation,
-        sub_task_validation,
+        task_validation,
         activity_validation,
         save_subscription_validation, } from '../validations/index'
 
@@ -63,25 +63,26 @@ import {
         edit_member}  from "../controllers/team_members"
 
 import {
-        all_paginated_tasks, 
-        all_paginated_todo_tasks, 
+        all_paginated_projects, 
+        all_paginated_todo_projects, 
         create_new_activity, 
-        create_sub_task, 
+        create_project,
         create_task,
-        delete_task,
-        edit_task} from "../controllers/task_controllers"
+        delete_project,
+        edit_project} from "../controllers/project_controllers"
+
 
 const router = express.Router()
 
 // authentication
 
-router.route('/signup').post(signup_validation, email_exist, signup)
+router.route('/signup').post(email_exist, signup_validation, signup)
 
-router.route('/login').post(login_validation, login, )
+router.route('/login').post(login_validation, login )
 
 router.route('/save-subscription').post(verify_auth_id, save_subscription_validation, save_subscription)
 
-router.route('/persist-login').post(verify_auth_id, persist_login, )
+router.route('/persist-login').post(verify_auth_id, persist_login )
 
 router.route('/register-user').post(signup_validation, verify_auth_id, email_exist, register_user, welcome_notification_2)
 
@@ -94,8 +95,6 @@ router.route('/reset-password').post(verify_auth_id, reset_password_validation, 
 router.route('/update-profile').patch(verify_auth_id, profile_validation, profile_update)
 
 router.route('/change-avatar').patch(verify_auth_id, avatar_validation, change_avatar)
-
-
 
 // Users
 
@@ -119,21 +118,21 @@ router.route('/unread-notification').get(verify_auth_id, unread_user_notificatio
 
 router.route('/read-notification/:notificationAssignment_id').patch(verify_auth_id, read_notification)
 
-// Tasks
+// Projects
 
-router.route('/all-paginated-tasks/:list_number/:page_number').get(verify_auth_id, all_paginated_tasks)
+router.route('/all-paginated-projects/:list_number/:page_number').get(verify_auth_id, all_paginated_projects)
 
-router.route('/all-paginated-todo-tasks/:list_number/:page_number').get(verify_auth_id, all_paginated_todo_tasks)
+router.route('/all-paginated-todo-projects/:list_number/:page_number').get(verify_auth_id, all_paginated_todo_projects)
 
-router.route('/create-task').post(verify_auth_id, task_validation, create_task)
+router.route('/create-project').post(verify_auth_id, project_validation, create_project)
 
-router.route('/create-subtask/:task_id').post(verify_auth_id, sub_task_validation, create_sub_task )
+router.route('/create-task/:project_id').post(verify_auth_id, task_validation, create_task )
 
-router.route('/add-activity/:task_id').post(verify_auth_id, activity_validation, create_new_activity)
+router.route('/add-activity/:project_id').post(verify_auth_id, activity_validation, create_new_activity)
 
-router.route('/edit-task/:task_id').patch(verify_auth_id, task_validation, edit_task)
+router.route('/edit-project/:project_id').patch(verify_auth_id, project_validation, edit_project)
 
-router.route('/delete-task/:task_id').delete(verify_auth_id, delete_task)
+router.route('/delete-project/:project_id').delete(verify_auth_id, delete_project)
 
 // Payments
 

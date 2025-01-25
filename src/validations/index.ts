@@ -7,10 +7,10 @@ export const signup_validation = async (req: Request, res: Response, next: NextF
         const schema = Joi.object({
             last_name: Joi.string().trim().required(),
             first_name: Joi.string().trim().required(),
-            title: Joi.string().trim().allow('').optional(),
-            role: Joi.string().trim().required(),
+            title: Joi.string().trim().required(),
             email: Joi.string().trim().email().required(),
             password: Joi.string().trim().required(),
+            is_super_admin: Joi.boolean().optional(),
             is_admin: Joi.boolean().optional()
         })
 
@@ -181,10 +181,10 @@ export const new_user_validation = async (req: Request, res: Response, next: Nex
     }
 }
 
-export const task_validation = async (req: Request, res: Response, next: NextFunction)=>{
+export const project_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            task_title: Joi.string().trim().required(),
+            project_title: Joi.string().trim().required(),
             priority: Joi.string().trim().required(),
             cost: Joi.number().required(),
             stage: Joi.string().trim().required(),
@@ -200,17 +200,17 @@ export const task_validation = async (req: Request, res: Response, next: NextFun
         }
         return next()
     } catch (err:any) {
-        console.log('Error occured in new task data validation function ',err)
-        return res.status(422).json({err: 'Error occured in new task data validation funtion ', error: err})
+        console.log('Error occured in new project data validation function ',err)
+        return res.status(422).json({err: 'Error occured in new project data validation funtion ', error: err})
         
     }
 }
 
-export const sub_task_validation = async (req: Request, res: Response, next: NextFunction)=>{
+export const task_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
             title: Joi.string().trim().required(),
-            tag: Joi.string().trim().required(),
+            is_completed: Joi.boolean().optional(),
             due_date: Joi.number().required(),
         })
 
@@ -252,7 +252,7 @@ export const activity_validation = async (req: Request, res: Response, next: Nex
 export const payment_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            task_id: Joi.string().trim().required(),
+            project_id: Joi.string().trim().required(),
             amount: Joi.number().required(),
             payer_name: Joi.string().trim().required(),
             payment_receipt: Joi.array().items(Joi.object()).optional(),

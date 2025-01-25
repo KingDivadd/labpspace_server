@@ -108,7 +108,7 @@ export const login = async(req: Request, res: Response, next: NextFunction)=>{
 export const persist_login = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     try {
         
-        const user_id = req.account_holder.user.user_id
+        const user_id = req.account_holder.user.user_id;
 
         const user = await prisma.user.findUnique({ where: { user_id }})
 

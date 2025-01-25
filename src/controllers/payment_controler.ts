@@ -18,15 +18,15 @@ export const all_paginated_payments = async(req: CustomRequest, res: Response)=>
             prisma.paymentHistory.findMany({
                 include:{
                     added_by: {select: {first_name: true, last_name: true, avatar: true, is_admin: true, is_active: true}},
-                    task: true
+                    project: true
                 },
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table, 
                 take: no_of_items_per_table, 
                 orderBy: { created_at: 'desc'  } 
             }),
 
-            prisma.task.findMany({
-                select:{cost: true, task_title: true, task_ind: true, task_id:true},
+            prisma.project.findMany({
+                select:{cost: true, project_title: true, project_ind: true, project_id:true},
                 orderBy:{created_at:'desc'}
             })
 

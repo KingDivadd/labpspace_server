@@ -24,7 +24,7 @@ export const all_paginated_trash = async(req: CustomRequest, res: Response)=>{
                             first_name: true, last_name: true, email: true, avatar: true,
                         }
                     },
-                    deleted_task:{
+                    deleted_project:{
                         include: {
                             team: {
                                 include: {
@@ -74,12 +74,12 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         //     return res.status(401).json({err: `Only ${trash_exist?.deleted_by?.first_name} ${trash_exist?.deleted_by?.last_name} is authorized to delete selected file.`})
         // }
 
-        if (trash_exist.deleted_task_id){
+        if (trash_exist.deleted_project_id){
             await Promise.all([
                 prisma.trash.delete({where:{trash_id}}),
-                prisma.activity.deleteMany({where:{task_id:trash_exist.deleted_task_id}}),
-                prisma.task.delete({where: {task_id: trash_exist.deleted_task_id}}),
-                prisma.taskAssignment.deleteMany({where: {task_id: trash_exist.deleted_task_id}})
+                prisma.activity.deleteMany({where:{project_id:trash_exist.deleted_project_id}}),
+                prisma.project.delete({where: {project_id: trash_exist.deleted_project_id}}),
+                prisma.projectAssignment.deleteMany({where: {project_id: trash_exist.deleted_project_id}})
 
             ])
         }else if (trash_exist.deleted_user_id){
@@ -108,9 +108,11 @@ export const restore_selected_trash = async (req:CustomRequest, res: Response) =
 
         if (!trash_exist){return res.status(404).json({err: 'Trash not found'})}
 
-        if (trash_exist.deleted_task_id) {
+        if (trash_exist.deleted_project_id) {
             await Promise.all([
-                prisma.task.update({where: {task_id: trash_exist.deleted_task_id}, data: {is_trashed: false, updated_at: converted_datetime()}}),
+                prisma.project.update({
+                    where: {project_id: trash_exist.deleted_project_id}, 
+                    data: {is_trashed: false, updated_at: converted_datetime()}}),
                 prisma.trash.delete({where: {trash_id}})
             ])
         }else if (trash_exist.deleted_user_id){
@@ -145,7 +147,7 @@ export const restore_selected_trash = async (req:CustomRequest, res: Response) =
 //         all_trash.map((data:any)=>{
 //             if (data.deleted_user_id) {
 //                 user_trash.push(data)        
-//             }else if(data.delete_task_id){
+//             }else if(data.delete_project_id){
 //                 task_trash.push(data)
 //             }
 //         })

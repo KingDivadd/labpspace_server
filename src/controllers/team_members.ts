@@ -26,7 +26,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
             };
 
         const [total_task, recent_tasks, recent_users, recent_payments, recent_notification ] = await Promise.all([
-            prisma.task.findMany({
+            prisma.project.findMany({
                 where: {is_trashed: false},
                 include: {
                     team: {
@@ -47,7 +47,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
             }),
 
             
-            prisma.task.findMany({
+            prisma.project.findMany({
                 where: taskWhereClause,
                 include: {
                     activities: {
@@ -64,7 +64,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                             },
                         },
                     },
-                    sub_tasks: true, // Include all fields of sub_tasks
+                    tasks: true, // Include all fields of sub_tasks
                     team: {
                         include: {
                             user: { // Include user details in team assignments
@@ -79,7 +79,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                             },
                         },
                     },
-                    task_creator: { // Optionally include task creator details
+                    project_creator: { // Optionally include task creator details
                         select: {
                             first_name: true,
                             last_name: true,
@@ -103,7 +103,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
             prisma.paymentHistory.findMany({
                 include:{
                     added_by: {select: {first_name: true, last_name: true, avatar: true, is_admin: true, is_active: true}},
-                    task: true
+                    project: true
                 },
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table, 
                 take: 15, 
@@ -150,9 +150,10 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
 
 export const add_new_member = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     try {
-        const role = req.account_holder.user
 
-        if (!role.is_admin) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }
+        const is_admin = req.account_holder.user.is_admin
+
+        if (!is_admin) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }
 
         const generated_password = generate_password()
 
@@ -161,7 +162,6 @@ export const add_new_member = async(req: CustomRequest, res: Response, next: Nex
         req.body.password = encrypted_password;
         req.body.created_at = converted_datetime();
         req.body.updated_at = converted_datetime();
-        req.body.role = req.body.title
 
         const new_user = await prisma.user.create({ data: req.body })
 
@@ -184,13 +184,23 @@ export const edit_member = async(req: CustomRequest, res: Response, next: NextFu
     const {first_name, last_name, email, title, is_admin, is_active} = req.body
     try {
         const role = req.account_holder.user
+        const is_admin = req.account_holder.user.is_admin;
+        const is_super_admin = req.account_holder.user.is_super_admin
 
         if (!role.is_admin) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }        
 
         const {user_id} = req.params
 
+        const user_exist = await prisma.user.findFirst({ where: {user_id} })
+
+        if (is_admin && user_exist?.is_super_admin) {
+            return res.status(400).json({err: 'Not authorized perform operation.'})
+        }
+
         const update: any = {}
+
         update.updated_at = converted_datetime()
+
         if (first_name.trim() !== ''){ update.first_name = first_name }
 
         if (last_name.trim() !== ''){ update.last_name = last_name }
@@ -222,20 +232,28 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
     // 2. you should not be able to dele
     try {
 
-        const role = req.account_holder.user; 
-        const userId = req.account_holder.user.user_id
+        const is_admin = req.account_holder.user.is_admin; 
+        const is_super_admin = req.account_holder.user.is_super_admin
 
-        if (!role.is_admin) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }     
+        const userId = req.account_holder.user.user_id
 
         const {user_id} = req.params
 
         const user_exist = await prisma.user.findFirst({ where: {user_id} })
 
-        if (userId === user_exist?.user_id) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }
+        if (userId === user_exist?.user_id) { return res.status(400).json({err: 'Error deleting own account'}) }
+
+        // if the user to be deleted is an admin, will need a super admin to delete
+
+        if ( (is_admin && user_exist?.is_admin) || (is_admin && user_exist?.is_super_admin) ){
+            return res.status(401).json({err: 'Unathorized to delete accout'})
+        }
 
         if (!user_exist) { return res.status(404).json({err: 'User not found'}) }
 
         if (user_exist.is_trashed){ return res.status(400).json({err: 'User already deleted'})}
+
+        console.log(' aaa ', req.account_holder.user.user_id)
 
         const [del_user]  = await Promise.all([
             prisma.user.update({
@@ -246,9 +264,9 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
             }),
             prisma.trash.create({
                 data:{
-                    created_at: converted_datetime(), 
-                    updated_at: converted_datetime(), 
-                    deleted_user_id: user_exist.user_id
+                    created_at: converted_datetime(),
+                    updated_at: converted_datetime(),
+                    deleted_user_id: req.account_holder.user.user_id
                 }
             })
         ]) 
@@ -256,7 +274,6 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
         // send email and web push to user
 
         return res.status(200).json({msg: 'User deleted successfully'})
-
         
     } catch (err:any) {
         console.log('Error occured while deleting user ', err);

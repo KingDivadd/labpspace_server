@@ -34,11 +34,11 @@ export const test_db_connection = async(req: Request, res: Response, next: NextF
 export const retain_connection = async()=>{
     try {
         
-        const tasks = await prisma.taskAssignment.findMany({
+        const projects = await prisma.projectAssignment.findMany({
             include: {
-                task: {
+                project: {
                     include: {
-                        sub_tasks: true, 
+                        tasks: true, 
                         team: true
                     }
                 }
@@ -46,7 +46,7 @@ export const retain_connection = async()=>{
             orderBy: {created_at: 'desc'}
         })
 
-        return {tasks, status: 200}
+        return {projects, status: 200}
 
     } catch (err:any) {
         return {msg: 'Error maintaining server continuous server connection', status: 500}
