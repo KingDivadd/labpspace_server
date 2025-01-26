@@ -108,6 +108,8 @@ export const restore_selected_trash = async (req:CustomRequest, res: Response) =
 
         if (!trash_exist){return res.status(404).json({err: 'Trash not found'})}
 
+        let restored_user;
+
         if (trash_exist.deleted_project_id) {
             await Promise.all([
                 prisma.project.update({
@@ -116,7 +118,7 @@ export const restore_selected_trash = async (req:CustomRequest, res: Response) =
                 prisma.trash.delete({where: {trash_id}})
             ])
         }else if (trash_exist.deleted_user_id){
-            await Promise.all([
+            restored_user = await Promise.all([
                 prisma.user.update({where: {user_id: trash_exist.deleted_user_id }, data: {is_trashed: false, updated_at: converted_datetime()}}),
                 prisma.trash.delete({where: {trash_id}})
             ])

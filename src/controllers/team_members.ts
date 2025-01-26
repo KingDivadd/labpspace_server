@@ -253,7 +253,8 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
 
         if (user_exist.is_trashed){ return res.status(400).json({err: 'User already deleted'})}
 
-        console.log(' aaa ', req.account_holder.user.user_id)
+        console.log(req.account_holder.user.user_id)
+        
 
         const [del_user]  = await Promise.all([
             prisma.user.update({
@@ -266,7 +267,8 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
                 data:{
                     created_at: converted_datetime(),
                     updated_at: converted_datetime(),
-                    deleted_user_id: req.account_holder.user.user_id
+                    deleted_user_id: user_id,
+                    deleted_by_id: userId
                 }
             })
         ]) 

@@ -7,15 +7,18 @@ import { CustomRequest } from '../helpers/interface'
 export const all_paginated_payments = async(req: CustomRequest, res: Response)=>{
     try {
 
-        const {list_number, page_number} = req.params
+        const {project_id, list_number, page_number} = req.params
 
         const no_of_items_per_table = Number(list_number) || 15
 
         const [number_of_payments, payments, task ] = await Promise.all([
 
-            prisma.paymentHistory.count({ }),
+            prisma.paymentHistory.count({
+                where: {project_id}
+            }),
 
             prisma.paymentHistory.findMany({
+                where: {project_id},
                 include:{
                     added_by: {select: {first_name: true, last_name: true, avatar: true, is_admin: true, is_active: true}},
                     project: true

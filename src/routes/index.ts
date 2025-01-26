@@ -68,6 +68,7 @@ import {
         create_new_activity, 
         create_project,
         create_task,
+        complete_task,
         delete_project,
         edit_project} from "../controllers/project_controllers"
 
@@ -128,6 +129,8 @@ router.route('/create-project').post(verify_auth_id, project_validation, create_
 
 router.route('/create-task/:project_id').post(verify_auth_id, task_validation, create_task )
 
+router.route('/complete-task/:task_id/:project_id').patch(verify_auth_id, complete_task)
+
 router.route('/add-activity/:project_id').post(verify_auth_id, activity_validation, create_new_activity)
 
 router.route('/edit-project/:project_id').patch(verify_auth_id, project_validation, edit_project)
@@ -136,7 +139,7 @@ router.route('/delete-project/:project_id').delete(verify_auth_id, delete_projec
 
 // Payments
 
-router.route('/all-paginated-payments/:list_number/:page_number').get(verify_auth_id, all_paginated_payments)
+router.route('/all-paginated-payments/:project_id/:list_number/:page_number').get(verify_auth_id, all_paginated_payments)
 
 router.route('/add-payment').post(verify_auth_id, payment_validation, add_new_payment)
 

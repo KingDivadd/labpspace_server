@@ -285,11 +285,11 @@ export const create_task = async (req: CustomRequest, res: Response) => {
             team.push(data.user.user_id)
         });
 
-        const [new_project, new_notification, ] = await Promise.all([
+        const [new_task, new_notification, ] = await Promise.all([
 
             prisma.task.create({
                 data: {
-                    title, due_date, is_completed, project_id, task_created_by:user_id,
+                    title, due_date, is_completed, project_id, task_created_by_id:user_id,
                     created_at: converted_datetime(), updated_at: converted_datetime()
                 }
             }),
@@ -316,7 +316,7 @@ export const create_task = async (req: CustomRequest, res: Response) => {
             created_at: current_datetime, updated_at: current_datetime,
         }))
 
-        const desc_value = `A new sub task with title ${title} has been created by ${user?.first_name} ${user?.last_name}.`
+        const desc_value = `A task with title ${title} has been created by ${user?.first_name} ${user?.last_name}.`
 
         // Perform bulk inserts in parallel
         const [activitiesResult, notification_result] = await Promise.all([
@@ -333,12 +333,92 @@ export const create_task = async (req: CustomRequest, res: Response) => {
         ]);
 
         return res.status(201).json({
-            msg: 'New subtask created',
+            msg: 'New Task created',
         })
 
     } catch (err:any) {
-        console.log('Error creating subtask ', err);
-        return res.status(500).json({err:'Error creating subtask ', error:err});
+        console.log('Error creating task ', err);
+        return res.status(500).json({err:'Error creating task ', error:err});
+    }
+}
+
+export const complete_task = async (req: CustomRequest, res: Response) => {
+    try {
+        const user_id = req.account_holder.user.user_id;
+        const user = req.account_holder.user
+
+        const {task_id, project_id} = req.params
+
+        console.log(task_id, '\n', project_id)
+
+        const project_assignees = await prisma.projectAssignment.findMany({
+            where: {project_id},
+            select: {user: {select: {user_id: true}}}
+        })
+
+        const team:any[] = []
+
+        project_assignees.forEach((data:any) => {
+            team.push(data.user.user_id)
+        });
+
+        const [task, new_notification, ] = await Promise.all([
+
+            prisma.task.update({
+                where: {task_id},
+                data: {
+                    is_completed: true, updated_at: converted_datetime()
+                }
+            }),
+
+            prisma.notification.create({
+                data: {
+                    status: 'completed',
+                    project_id: project_id,
+                    notification_type: 'task',
+                    notification_sub_type: 'task_completed',
+                    created_at: converted_datetime(), updated_at: converted_datetime()
+                }
+            })
+
+        ])
+
+        // Prepare data for bulk inserts
+        const current_datetime = converted_datetime();
+
+        const notificationAssignment = team.map((team_member_id: any)=>({
+
+            notification_id: new_notification.notification_id,
+            user_id: team_member_id,
+            created_at: current_datetime, updated_at: current_datetime,
+        }))
+
+        const desc_value = `Task with title ${task.title} has been marked as completed by ${user?.first_name} ${user?.last_name}.`
+
+        // Perform bulk inserts in parallel
+        const [activitiesResult, notification_result] = await Promise.all([
+            prisma.activity.create({ data: {
+                activity_type:'updated',
+                project_id: project_id,
+                created_by_id: user_id,
+                description: desc_value,
+                date: current_datetime,
+                created_at: current_datetime,
+                updated_at: current_datetime,
+            } }),
+            prisma.notificationAssignment.createMany({data: notificationAssignment})
+        ]);
+
+        console.log(task)
+
+        return res.status(201).json({
+            msg: 'Task Completed',
+            data: task
+        })
+
+    } catch (err:any) {
+        console.log('Error updating task ', err);
+        return res.status(500).json({err:'Error updating task ', error:err});
     }
 }
 
@@ -568,21 +648,30 @@ export const edit_project = async (req: CustomRequest, res: Response, next: Next
 export const delete_project = async (req:CustomRequest, res: Response) => {
     try {
         
-        const user_id = req.account_holder.user.user_id; const is_admin = req.account_holder.user.is_admin
+        const user_id = req.account_holder.user.user_id; 
+        
+        const is_admin = req.account_holder.user.is_admin;
+
+        const is_super_admin = req.account_holder.user.is_super_admin;
         
         const {project_id} = req.params
 
-        const task_exist = await prisma.project.findUnique({ where: {project_id}, include: {project_creator: {select: {first_name: true, last_name: true}}}})
+        const task_exist = await prisma.project.findUnique({ 
+            where: {project_id}, 
+            include: {project_creator: {select: {first_name: true, last_name: true}}}
+        })
 
         if (!task_exist){ return res.status(404).json({err: 'Task not found!'})}
 
         if (task_exist.is_trashed){ return res.status(400).json({err: 'Task deleted successfully'})}
 
-        if ((is_admin && task_exist.project_creator_id !== user_id)) {
-            return res.status(401).json({err: `Not authorized to delete task, refer to ${task_exist.project_creator.first_name} ${task_exist.project_creator.last_name}`})
+        if (!is_super_admin && is_admin && task_exist.project_creator_id !== user_id) {
+            return res.status(401).json({err: `Not authorized to delete task`})
         }
 
         if (!is_admin) { return res.status(401).json({err: 'Not authorized to perform operation'}) }
+
+        console.log(user_id)
 
         const [delete_proj, trash_project] = await Promise.all([
             prisma.project.update({ where: {project_id}, data: {is_trashed: true, updated_at: converted_datetime()} }),
