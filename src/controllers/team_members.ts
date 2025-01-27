@@ -18,37 +18,24 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
 
         const no_of_items_per_table = 15
 
-        const taskWhereClause = is_admin
-            ? { is_trashed: false } // Admins see all non-trashed tasks
+        const projectWhereClause = is_admin
+            ? { is_trashed: false } // Admins see all non-trashed projects
             : { 
                 is_trashed: false, 
-                team: { some: { user_id } } // Non-admins see only tasks in their team
+                team: { some: { user_id } } // Non-admins see only projects in their team
             };
 
-        const [total_task, recent_tasks, recent_users, recent_payments, recent_notification ] = await Promise.all([
+        const [total_project, recent_projects ] = await Promise.all([
             prisma.project.findMany({
                 where: {is_trashed: false},
-                include: {
-                    team: {
-                        include: {
-                            user: { // Include user details in team assignments
-                                select: {
-                                    first_name: true,
-                                    last_name: true,
-                                    email: true,
-                                    avatar: true,
-                                    title: true,
-                                    is_active: true, is_admin: true, user_id: true
-                                },
-                            },
-                        },
-                    },
+                select: {
+                    project_id: true, cost: true, payments:{select: {amount: true}}
                 }
             }),
 
             
             prisma.project.findMany({
-                where: taskWhereClause,
+                where: projectWhereClause,
                 include: {
                     activities: {
                         include: {
@@ -64,7 +51,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                             },
                         },
                     },
-                    tasks: true, // Include all fields of sub_tasks
+                    tasks: true, // Include all fields of sub_projects
                     team: {
                         include: {
                             user: { // Include user details in team assignments
@@ -79,7 +66,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                             },
                         },
                     },
-                    project_creator: { // Optionally include task creator details
+                    project_creator: { // Optionally include project creator details
                         select: {
                             first_name: true,
                             last_name: true,
@@ -93,53 +80,26 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
                 orderBy:{created_at: 'desc'},
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
             }),
-            
-            prisma.user.findMany({
-                where: {is_trashed: false},
-
-                skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table, take: no_of_items_per_table, orderBy: { created_at: 'desc'  } 
-            }),
-
-            prisma.paymentHistory.findMany({
-                include:{
-                    added_by: {select: {first_name: true, last_name: true, avatar: true, is_admin: true, is_active: true}},
-                    project: true
-                },
-                skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table, 
-                take: 15, 
-                orderBy: { created_at: 'desc'  } 
-            }),
-
-            prisma.notificationAssignment.findMany({
-                where: {
-                    user_id, 
-                    is_read: false
-                },
-                include: {notification: true},
-                skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table, take: no_of_items_per_table, orderBy: { created_at: 'desc'  }
-            })
 
         ])
         
-        const assigned_tasks = total_task.filter((task: any) => 
-            task.team.some((assignment: any) => assignment.user_id === user_id)
-        );
-        const completed_tasks = total_task.filter((data:any) => data.stage == 'completed' )
-        const tasks_in_progress = total_task.filter((data:any) => data.stage == 'in_progress' )
-        const todo_tasks = total_task.filter((data:any) => data.stage == 'todo' )
+        // const assigned_projects = total_project.filter((project: any) => 
+        //     project.team.some((assignment: any) => assignment.user_id === user_id)
+        // );
+        const project_cost = total_project.reduce((accumulator, current) => {
+            return accumulator + current.cost;
+        }, 0);
+        const completed_projects = total_project.filter((data:any) => data.stage == 'completed' )
 
         return res.status(200).json({ 
-            total_no_of_tasks: total_task.length, 
-            total_no_of_assigned_tasks: assigned_tasks.length,
-            total_no_of_completed_tasks: completed_tasks.length,
-            total_no_of_tasks_in_progress: tasks_in_progress.length,
-            total_no_of_todo_tasks: todo_tasks.length,
+            total_no_of_projects: total_project.length, 
+            total_project_cost: project_cost,
 
-            recent_tasks: recent_tasks,
-            recent_users: recent_users,
-            recent_notification: recent_notification,
-            recent_payments: recent_payments,
+            // total_no_of_assigned_projects: assigned_projects.length,
+            total_no_of_completed_projects: completed_projects.length,
             
+
+            recent_projects: recent_projects,            
         })
 
     } catch (err:any) {
@@ -209,7 +169,7 @@ export const edit_member = async(req: CustomRequest, res: Response, next: NextFu
 
         if (title.trim() !== ''){ update.title = title }
 
-        update.is_admin = is_admin
+        update.is_admin = req.body.is_admin
 
         update.is_active = is_active
 
