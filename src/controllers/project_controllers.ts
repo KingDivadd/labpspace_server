@@ -91,7 +91,6 @@ export const all_paginated_todo_projects = async(req: CustomRequest, res: Respon
         return res.status(500).json({err:'Error occured while fetching all todo tasks ',error:err});
     }
 }
-
 export const all_paginated_projects = async (req: CustomRequest, res: Response) => {
     try {
         const user_id = req.account_holder.user.user_id;
@@ -100,18 +99,21 @@ export const all_paginated_projects = async (req: CustomRequest, res: Response) 
         const { list_number, page_number } = req.params;
         const no_of_items_per_table = Number(list_number) || 15;
 
-        const taskWhereClause = is_admin
-            ? { is_trashed: false } // Admins see all non-trashed tasks
+        // Define the query condition based on the user's role
+        
+        const projectWhereClause = is_admin
+            ? { is_trashed: false } // Admins see all non-trashed projects
             : {
                 is_trashed: false,
-                team: { some: { user_id } } // Non-admins see only tasks in their team
+                team: { some: { user_id } } // Non-admins see only projects in their team
             };
 
-        const [number_of_projects, tasks, users, no_of_assigned_project] = await Promise.all([
-            prisma.project.count({ where: taskWhereClause }),
+
+        const [number_of_projects, projects, users, no_of_assigned_project] = await Promise.all([
+            prisma.project.count({ where: projectWhereClause }),
 
             prisma.project.findMany({
-                where: taskWhereClause,
+                where: projectWhereClause,
                 include: {
                     activities: {
                         include: {
@@ -124,7 +126,7 @@ export const all_paginated_projects = async (req: CustomRequest, res: Response) 
                                     title: true,
                                     is_active: true,
                                     is_admin: true,
-                                    user_id: true
+                                    user_id: true,
                                 },
                             },
                         },
@@ -141,7 +143,7 @@ export const all_paginated_projects = async (req: CustomRequest, res: Response) 
                                     title: true,
                                     is_active: true,
                                     is_admin: true,
-                                    user_id: true
+                                    user_id: true,
                                 },
                             },
                         },
@@ -155,15 +157,16 @@ export const all_paginated_projects = async (req: CustomRequest, res: Response) 
                             title: true,
                             is_active: true,
                             is_admin: true,
-                            user_id: true
+                            user_id: true,
                         },
                     },
                     payments: {
-                        select: { amount: true }
-                    }
+                        select: { amount: true },
+                    },
                 },
                 orderBy: { created_at: 'desc' },
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
+                take: no_of_items_per_table, // Ensure pagination limit is applied
             }),
 
             prisma.user.findMany({ where: { is_trashed: false } }),
@@ -173,35 +176,42 @@ export const all_paginated_projects = async (req: CustomRequest, res: Response) 
                     is_trashed: false,
                     team: {
                         some: {
-                            user_id
-                        }
-                    }
-                }
-            })
+                            user_id,
+                        },
+                    },
+                },
+            }),
         ]);
 
-        // Add amount_due to each task
-        const tasksWithAmountDue = tasks.map(task => {
-            const totalPayments = task.payments.reduce((sum, payment) => sum + payment.amount, 0);
-            const amount_due = task.cost - totalPayments; // Assuming `cost` is a field in the task model
-            return { ...task, total_amount_paid: totalPayments, amount_due }; // Add `amount_due` field to the task object
+
+        // Add amount_due to each project
+        const projectsWithAmountDue = projects.map((project) => {
+            const totalPayments = project.payments.reduce((sum, payment) => sum + payment.amount, 0);
+            const amount_due = project.cost - totalPayments; // Assuming `cost` is a field in the project model
+            return { ...project, total_amount_paid: totalPayments, amount_due }; // Add `amount_due` field to the project object
         });
 
-        const number_of_project_pages = (number_of_projects <= no_of_items_per_table) ? 1 : Math.ceil(number_of_projects / no_of_items_per_table);
+        const number_of_project_pages =
+            number_of_projects <= no_of_items_per_table
+                ? 1
+                : Math.ceil(number_of_projects / no_of_items_per_table);
 
         return res.status(200).json({
             total_number_of_projects: number_of_projects,
             total_number_of_pages: number_of_project_pages,
-            tasks: tasksWithAmountDue,
+            projects: projectsWithAmountDue,
             users,
-            no_of_assigned_project
+            no_of_assigned_project,
         });
-
     } catch (err: any) {
-        console.log('Error occurred while fetching all users ', err);
-        return res.status(500).json({ err: 'Error occurred while fetching all users', error: err });
+        console.log('Error occurred while fetching projects: ', err);
+        return res.status(500).json({
+            err: 'Error occurred while fetching projects',
+            error: err.message,
+        });
     }
 };
+
 
 export const create_new_activity = async (req: CustomRequest, res: Response) => {
     const {description, activity_type} = req.body
@@ -349,7 +359,6 @@ export const complete_task = async (req: CustomRequest, res: Response) => {
 
         const {task_id, project_id} = req.params
 
-        console.log(task_id, '\n', project_id)
 
         const project_assignees = await prisma.projectAssignment.findMany({
             where: {project_id},
@@ -408,8 +417,6 @@ export const complete_task = async (req: CustomRequest, res: Response) => {
             } }),
             prisma.notificationAssignment.createMany({data: notificationAssignment})
         ]);
-
-        console.log(task)
 
         return res.status(201).json({
             msg: 'Task Completed',
@@ -670,8 +677,6 @@ export const delete_project = async (req:CustomRequest, res: Response) => {
         }
 
         if (!is_admin) { return res.status(401).json({err: 'Not authorized to perform operation'}) }
-
-        console.log(user_id)
 
         const [delete_proj, trash_project] = await Promise.all([
             prisma.project.update({ where: {project_id}, data: {is_trashed: true, updated_at: converted_datetime()} }),

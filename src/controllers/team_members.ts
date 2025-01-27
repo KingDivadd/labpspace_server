@@ -27,7 +27,7 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
 
         const [total_project, recent_projects ] = await Promise.all([
             prisma.project.findMany({
-                where: {is_trashed: false},
+                where: projectWhereClause,
                 select: {
                     project_id: true, cost: true, payments:{select: {amount: true}}
                 }
