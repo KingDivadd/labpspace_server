@@ -3,8 +3,8 @@ import prisma from '../helpers/prisma_initializer'
 import { salt_round } from '../helpers/constants'
 import converted_datetime from '../helpers/date_time_elements'
 import { redis_auth_store, redis_otp_store, redis_value_update } from '../helpers/redis_funtions'
-import {generate_otp, generate_referral_code} from '../helpers/generated_entities'
-import { admin_account_created_mail, password_reset_otp_mail, password_reset_success_mail} from '../helpers/emails'
+import {generate_otp, generate_password, generate_referral_code} from '../helpers/generated_entities'
+import { admin_account_created_mail, password_reset_otp_mail, password_reset_success_mail, user_account_created_mail} from '../helpers/emails'
 import { CustomRequest } from '../helpers/interface'
 import {send_sms_otp} from '../helpers/sms_funtions'
 import { handle_decrypt } from '../helpers/encryption_decryption'
@@ -45,7 +45,8 @@ export const register_user = async(req: CustomRequest, res: Response, next: Next
         if (!is_admin) {
             return res.status(401).json({err: 'Only admins are allowed to register a new user.'})
         }
-        const encrypted_password = await bcrypt.hash(req.body.password, salt_round);
+        const password = generate_password()
+        const encrypted_password = await bcrypt.hash(password, salt_round);
 
         req.body.password = encrypted_password;
         req.body.created_at = converted_datetime();
@@ -60,8 +61,10 @@ export const register_user = async(req: CustomRequest, res: Response, next: Next
         if (x_id_key){
             res.setHeader('x-id-key', x_id_key)
         }
+
+        user_account_created_mail(new_user, password)
         
-        return next()        
+        return res.status(201).json({msg: 'User registered successfully.'})    
 
     } catch (err:any) {
         console.log('Error occured during user registration ', err);

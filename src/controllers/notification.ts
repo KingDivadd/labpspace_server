@@ -3,6 +3,7 @@ import prisma from '../helpers/prisma_initializer'
 import { CustomRequest } from '../helpers/interface';
 import converted_datetime from '../helpers/date_time_elements';
 import webpush from 'web-push'
+import { user_account_created_mail } from '../helpers/emails';
 
 export const welcome_notification_2 = async(req: Request, res: Response)=>{
     try {

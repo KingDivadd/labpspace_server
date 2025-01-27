@@ -21,7 +21,7 @@ export function generate_otp() {
 }
 
 export function generate_password() {
-    const characters = '0123456789Lssabspace';
+    const characters = '0123456789LABSPACE';
     let otp = '';
 
     for (let i = 0; i < 6; i++) {

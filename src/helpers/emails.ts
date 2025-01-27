@@ -132,7 +132,7 @@ export const user_account_created_mail = (user: any, password: string) => {
 
                 a {
                     color: #0066cc;
-                    text-decoration: none;
+                    text-decoration: underline;
                 }
             </style>
         </head>
@@ -142,6 +142,8 @@ export const user_account_created_mail = (user: any, password: string) => {
                 <p>Your account has been created by the admin. Below are your login credentials:</p>
                 <p><strong>Email:</strong> ${user.email}</p>
                 <p><strong>Password:</strong> ${password}</p>
+                <p>To log in to your account, please click the link below:</p>
+                <p><a href="https://labpspace.vercel.app/auth/login">https://labpspace.vercel.app/auth/login</a></p>
                 <p>We recommend changing your password immediately after logging in to ensure your account's security.</p>
                 <p>For assistance, contact us at <a href="mailto:support@labpspace.com">support@labpspace.com</a>.</p>
                 <p>Best regards,</p>
@@ -156,13 +158,14 @@ export const user_account_created_mail = (user: any, password: string) => {
         to: user.email,
         subject: "Labpspace: User Account Created",
         html: htmlContent,
-        text: `Your account has been created. Email: ${user.email}, Password: ${password}`
+        text: `Your account has been created. Email: ${user.email}, Password: ${password}. Log in at: https://labpspace.vercel.app/auth/login`
     };
 
     transporter.sendMail(mailOptions, (error: any, info: any) => {
         handle_email_response(error, info, user.email);
     });
 };
+
 
 export const account_deactivated_mail = (user: any) => {
     const htmlContent = `
