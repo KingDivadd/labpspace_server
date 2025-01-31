@@ -23,7 +23,7 @@ export const admin_account_created_mail = (user: any) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to Labpspace</title>
+            <title>Welcome to Labspace</title>
             <style>
                 body {
                     text-align: center;
@@ -70,19 +70,19 @@ export const admin_account_created_mail = (user: any) => {
         </head>
         <body>
             <div class="container">
-                <h1>Welcome to Labpspace, ${user.first_name}!</h1>
+                <h1>Welcome to Labspace, ${user.first_name}!</h1>
                 <p>Your admin account has been successfully created. You can now log in and start managing tasks efficiently.</p>
-                <p>If you need help, contact us at <a href="mailto:support@labpspace.com">support@labpspace.com</a>.</p>
+                <p>If you need help, contact us at <a href="mailto:support@labspace.com">support@labspace.com</a>.</p>
                 <p>Best regards,</p>
-                <p>The Labpspace Team</p>
+                <p>The Labspace Team</p>
             </div>
         </body>
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labpspace", address: 'support@labpspace.com' },
+        from: { name: "Labspace", address: 'support@labspace.com' },
         to: user.email,
-        subject: "Labpspace: Admin Account Created",
+        subject: "Labspace: Admin Account Created",
         html: htmlContent,
         text: 'Your admin account has been created.'
     };
@@ -138,27 +138,27 @@ export const user_account_created_mail = (user: any, password: string) => {
         </head>
         <body>
             <div class="container">
-                <h1>Welcome to Labpspace, ${user.first_name}!</h1>
+                <h1>Welcome to Labspace, ${user.first_name}!</h1>
                 <p>Your account has been created by the admin. Below are your login credentials:</p>
                 <p><strong>Email:</strong> ${user.email}</p>
                 <p><strong>Password:</strong> ${password}</p>
                 <p>To log in to your account, please click the link below:</p>
-                <p><a href="https://labpspace.vercel.app/auth/login">https://labpspace.vercel.app/auth/login</a></p>
+                <p><a href="https://labspace.vercel.app/auth/login">https://labspace.vercel.app/auth/login</a></p>
                 <p>We recommend changing your password immediately after logging in to ensure your account's security.</p>
-                <p>For assistance, contact us at <a href="mailto:support@labpspace.com">support@labpspace.com</a>.</p>
+                <p>For assistance, contact us at <a href="mailto:support@labspace.com">support@labspace.com</a>.</p>
                 <p>Best regards,</p>
-                <p>The Labpspace Team</p>
+                <p>The Labspace Team</p>
             </div>
         </body>
         </html>
     `;
     
     const mailOptions = {
-        from: { name: "Labpspace", address: 'support@labpspace.com' },
+        from: { name: "Labspace", address: 'support@labspace.com' },
         to: user.email,
-        subject: "Labpspace: User Account Created",
+        subject: "Labspace: User Account Created",
         html: htmlContent,
-        text: `Your account has been created. Email: ${user.email}, Password: ${password}. Log in at: https://labpspace.vercel.app/auth/login`
+        text: `Your account has been created. Email: ${user.email}, Password: ${password}. Log in at: https://labspace.vercel.app/auth/login`
     };
 
     transporter.sendMail(mailOptions, (error: any, info: any) => {
@@ -223,17 +223,17 @@ export const account_deactivated_mail = (user: any) => {
             <div class="container">
                 <h1>Account Deactivated</h1>
                 <p>Hello ${user.first_name},</p>
-                <p>Your account has been deactivated by the admin. If this was an error, please contact support at <a href="mailto:support@labpspace.com">support@labpspace.com</a>.</p>
+                <p>Your account has been deactivated by the admin. If this was an error, please contact support at <a href="mailto:support@labspace.com">support@labspace.com</a>.</p>
                 <p>Best regards,</p>
-                <p>The Labpspace Team</p>
+                <p>The Labspace Team</p>
             </div>
         </body>
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labpspace", address: 'support@labpspace.com' },
+        from: { name: "Labspace", address: 'support@labspace.com' },
         to: user.email,
-        subject: "Labpspace: Account Deactivated",
+        subject: "Labspace: Account Deactivated",
         html: htmlContent,
         text: 'Your account has been deactivated.'
     };
@@ -303,15 +303,15 @@ export const password_reset_otp_mail = (user: any, otp: string) => {
                 <strong>${otp}</strong>
                 <p>This OTP expires in 20 minutes. If you did not request this, please secure your account immediately.</p>
                 <p>Best regards,</p>
-                <p>The Labpspace Team</p>
+                <p>The Labspace Team</p>
             </div>
         </body>
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labpspace", address: 'support@labpspace.com' },
+        from: { name: "Labspace", address: 'support@labspace.com' },
         to: user.email,
-        subject: "Labpspace: Password Reset OTP",
+        subject: "Labspace: Password Reset OTP",
         html: htmlContent,
         text: 'Your password reset OTP is included in the email.'
     };
@@ -379,15 +379,15 @@ export const password_reset_success_mail = (user: any) => {
                 <p>Hello ${user.first_name},</p>
                 <p>Your password has been successfully changed. If you did not perform this action, contact support immediately.</p>
                 <p>Best regards,</p>
-                <p>The Labpspace Team</p>
+                <p>The Labspace Team</p>
             </div>
         </body>
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labpspace", address: 'support@labpspace.com' },
+        from: { name: "Labspace", address: 'support@labspace.com' },
         to: user.email,
-        subject: "Labpspace: Password Reset Successful",
+        subject: "Labspace: Password Reset Successful",
         html: htmlContent,
         text: 'Your password reset was successful.'
     };
