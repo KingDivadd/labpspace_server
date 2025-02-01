@@ -70,7 +70,9 @@ import {
         create_task,
         complete_task,
         delete_project,
-        edit_project} from "../controllers/project_controllers"
+        edit_project,
+        edit_task,
+        delete_task} from "../controllers/project_controllers"
 
 
 const router = express.Router()
@@ -129,7 +131,11 @@ router.route('/create-project').post(verify_auth_id, project_validation, create_
 
 router.route('/create-task/:project_id').post(verify_auth_id, task_validation, create_task )
 
+router.route('/edit-task/:task_id/:project_id').patch(verify_auth_id, task_validation, edit_task )
+
 router.route('/complete-task/:task_id/:project_id').patch(verify_auth_id, complete_task)
+
+router.route('/delete-task/:task_id/:project_id').delete(verify_auth_id, delete_task)
 
 router.route('/add-activity/:project_id').post(verify_auth_id, activity_validation, create_new_activity)
 
