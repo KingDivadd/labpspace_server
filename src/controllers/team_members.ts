@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import prisma from '../helpers/prisma_initializer'
 import { salt_round } from '../helpers/constants'
 import converted_datetime from '../helpers/date_time_elements'
-import { redis_auth_store, redis_otp_store, redis_value_update } from '../helpers/redis_funtions'
+import { redis_auth_delete, redis_auth_store, redis_otp_store, redis_value_update } from '../helpers/redis_funtions'
 import {generate_otp, generate_password, generate_referral_code} from '../helpers/generated_entities'
 import { admin_account_created_mail, password_reset_otp_mail, password_reset_success_mail, user_account_created_mail} from '../helpers/emails'
 import { CustomRequest } from '../helpers/interface'
@@ -169,9 +169,15 @@ export const edit_member = async(req: CustomRequest, res: Response, next: NextFu
 
         if (title.trim() !== ''){ update.title = title }
 
+        if ((user_exist?.is_admin != req.body.is_admin) || (user_exist?.is_active != req.body.is_active)) {
+            redis_auth_delete(user_exist?.user_id || '')
+        }
+
         update.is_admin = req.body.is_admin
 
         update.is_active = is_active
+
+        //  
 
         const edit_member = await prisma.user.update({
             where: {user_id},

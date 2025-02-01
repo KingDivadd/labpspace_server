@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { gen_token } from './generated_entities';
-import { addToRedis, getFromRedis } from './redis_initializer';
+import { addToRedis, delFromRedis, getFromRedis } from './redis_initializer';
 
 export const redis_call_store = async (user_id: string, availability: any, useful_time: number) => {
     try {
@@ -16,11 +16,19 @@ export const redis_auth_store = async (user: any, useful_time: number) => {
     try {
         const uuid: string = uuidv4();
         const token = String(gen_token({user}, useful_time ));
-        await addToRedis(uuid, token, useful_time)
-        return uuid;
+        await addToRedis(user.user_id, token, useful_time)
+        return user.user_id;
 
     } catch (err) {
         console.error('Error in redis auth store function:', err);
+    }
+}
+
+export const redis_auth_delete = async (key:string) => {
+    try {
+        await delFromRedis(key)
+    } catch (err) {
+        console.log('Error in redis delete function ', err)
     }
 }
 

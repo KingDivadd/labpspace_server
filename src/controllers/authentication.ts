@@ -84,6 +84,11 @@ export const login = async(req: Request, res: Response, next: NextFunction)=>{
             return res.status(404).json({err: 'user not found, check email and try again'})
         }
 
+        if (!user.is_active) {
+            //send a mail to the user to contact the admin for activation
+            return res.status(401).json({err: 'Your account is currently suspended'})
+        }    
+
         const encrypted_password = user.password
         const match_password: boolean = await bcrypt.compare(password, encrypted_password)
 
@@ -122,7 +127,7 @@ export const persist_login = async(req: CustomRequest, res: Response, next: Next
 
         if (!user.is_active) {
             //send a mail to the user to contact the admin for activation
-            return res.status(401).json({err: 'Account is currently not active'})
+            return res.status(401).json({err: 'Your account is currently suspended'})
         }        
         
         return res.status(200).json({ msg: "Login successful", user_data: user, })
