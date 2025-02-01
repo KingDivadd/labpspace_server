@@ -4,7 +4,7 @@ import { salt_round } from '../helpers/constants'
 import converted_datetime from '../helpers/date_time_elements'
 import { redis_auth_delete, redis_auth_store, redis_otp_store, redis_value_update } from '../helpers/redis_funtions'
 import {generate_otp, generate_password, generate_referral_code} from '../helpers/generated_entities'
-import { admin_account_created_mail, password_reset_otp_mail, password_reset_success_mail, user_account_created_mail} from '../helpers/emails'
+import { account_reinstatement_mail, account_suspension_mail, admin_account_created_mail, admin_priviledge_reinstatemnt_mail, admin_priviledge_removal_mail, password_reset_otp_mail, password_reset_success_mail, user_account_created_mail} from '../helpers/emails'
 import { CustomRequest } from '../helpers/interface'
 import {send_sms_otp} from '../helpers/sms_funtions'
 import { handle_decrypt } from '../helpers/encryption_decryption'
@@ -171,6 +171,20 @@ export const edit_member = async(req: CustomRequest, res: Response, next: NextFu
 
         if ((user_exist?.is_admin != req.body.is_admin) || (user_exist?.is_active != req.body.is_active)) {
             redis_auth_delete(user_exist?.user_id || '')
+
+            // for account suspension
+            if(!req.body.is_active && user_exist?.is_active){
+                account_suspension_mail(user_exist)
+            }else if(req.body.is_active && !user_exist?.is_active){
+                account_reinstatement_mail(user_exist)
+            }
+            
+            // for admin permission
+            if (!req.body.is_admin && user_exist?.is_admin) {
+                admin_priviledge_removal_mail(user_exist)
+            }else if (req.body.is_admin && !user_exist?.is_admin){
+                admin_priviledge_reinstatemnt_mail(user_exist)
+            }
         }
 
         update.is_admin = req.body.is_admin

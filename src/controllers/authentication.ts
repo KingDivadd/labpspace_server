@@ -28,7 +28,7 @@ export const signup = async(req: Request, res: Response, next: NextFunction)=>{
             res.setHeader('x-id-key', x_id_key)
         }
 
-        admin_account_created_mail(new_user)
+        admin_account_created_mail(new_user, req.body.password)
 
         return res.status(201).json({msg: 'Admin created successfully', user: new_user})        
 
