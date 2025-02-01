@@ -14,6 +14,7 @@ import connect_to_mongo_db from './config/mongodb';
 import index from './routes/index'
 import not_found from  './middlewares/not_found'
 import check_network_availability from './middlewares/network_availability'
+import route_loggeR from './middlewares/route_logger'
 import { check_user_availability, socket_verify_auth_id } from './helpers/auth_helper';
 import prisma from './helpers/prisma_initializer';
 import converted_datetime, { readable_date } from './helpers/date_time_elements';
@@ -47,11 +48,10 @@ export {io}
 app.use(check_network_availability);
 
 // routes
+app.use(route_loggeR)
 app.use('/api/v1/app', index);
 
-
 app.use(not_found);
-
 
 setInterval(() => {
     retain_connection()
