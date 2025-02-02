@@ -268,6 +268,7 @@ export const create_new_activity = async (req: CustomRequest, res: Response) => 
 
         return res.status(201).json({
             msg: 'Timeline Updated',
+            new_activity: activitiesResult
         })
 
     } catch (err:any) {
