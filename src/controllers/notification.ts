@@ -160,7 +160,7 @@ export const push_notification = async (req: CustomRequest, res: Response, next:
 
         const title = req.notification_data.title; 
         const body = req.notification_data.body; 
-        const avatar = 'https://res.cloudinary.com/iroegbu-cloud-1/image/upload/v1735049324/rzhdxrwgldpldjpqdzcw.jpg'; 
+        const avatar = ''; 
         const user_id = req.notification_data.user_id
 
         const payloadData = { title, body, icon: avatar, url: req.body.url };
