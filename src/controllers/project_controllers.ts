@@ -262,6 +262,10 @@ export const create_new_activity = async (req: CustomRequest, res: Response) => 
                 date: current_datetime,
                 created_at: current_datetime,
                 updated_at: current_datetime,
+            }, include:{
+                created_by: {
+                    select: {first_name: true, last_name: true, avatar: true}
+                }
             } }),
             prisma.notificationAssignment.createMany({data: notificationAssignment})
         ]);
