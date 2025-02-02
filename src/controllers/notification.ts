@@ -138,6 +138,8 @@ export const save_subscription = async (req: CustomRequest, res: Response, next:
                 updated_at: converted_datetime(),
             },
         })
+
+        console.log('new sub ', subscription)
             
         return res.status(201).json({ msg: 'New subscription added' });
     } catch (error) {
