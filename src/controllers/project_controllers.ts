@@ -344,6 +344,7 @@ export const create_task = async (req: CustomRequest, res: Response) => {
 
         return res.status(201).json({
             msg: 'New Task created',
+            task: new_task
         })
 
     } catch (err:any) {
@@ -420,6 +421,7 @@ export const edit_task = async (req: CustomRequest, res: Response) => {
 
         return res.status(201).json({
             msg: 'Task Updated Successfully',
+            task: task
         })
 
     } catch (err:any) {
@@ -496,7 +498,7 @@ export const complete_task = async (req: CustomRequest, res: Response) => {
 
         return res.status(201).json({
             msg: 'Task Completed',
-            data: task
+            task: task
         })
 
     } catch (err:any) {
