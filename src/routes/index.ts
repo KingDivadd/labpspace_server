@@ -89,7 +89,7 @@ router.route('/persist-login').post(verify_auth_id, persist_login )
 
 router.route('/register-user').post(signup_validation, verify_auth_id, email_exist, register_user)
 
-router.route('/generate-otp').post(generate_otp_validation, generate_user_otp)
+router.route('/generate-otp').post(generate_otp_validation, generate_user_otp, push_notification)
 
 router.route('/verify-otp').post(verify_otp_validation, verify_otp_status, verify_otp )
 

@@ -156,7 +156,10 @@ export const push_notification = async (req: CustomRequest, res: Response, next:
 
         // const { title, body, avatar, message, data, user_id, } = req.pushNotificationData;
 
-        const title = 'Title'; const body = 'This is the body'; const avatar = 'https://res.cloudinary.com/iroegbu-cloud-1/image/upload/v1735049324/rzhdxrwgldpldjpqdzcw.jpg'; const user_id = 'c229d9d2-79df-4939-827a-f7e28ba46db8'
+        const title = req.notification_data.title; 
+        const body = req.notification_data.body; 
+        const avatar = 'https://res.cloudinary.com/iroegbu-cloud-1/image/upload/v1735049324/rzhdxrwgldpldjpqdzcw.jpg'; 
+        const user_id = req.notification_data.user_id
 
         const payloadData = { title, body, icon: avatar, url: req.body.url };
 
@@ -179,7 +182,7 @@ export const push_notification = async (req: CustomRequest, res: Response, next:
         }
 
         // Send the response after attempting to send notifications
-        return res.status(200).json({ msg: title,  });
+        return res.status(200).json({ msg: req.notification_data.msg  });
 
         
     } catch (err: any) {

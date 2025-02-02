@@ -22,6 +22,7 @@ export interface CustomRequest {
     patientModel?:any;
     physicianModel?:any;
     pushNotificationData?:any;
+    notification_data?:any;
 }
 
 

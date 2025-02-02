@@ -151,9 +151,17 @@ export const generate_user_otp = async(req: CustomRequest, res: Response, next: 
         await redis_otp_store(email, otp, 'unverified', 60 * 60 * 1/6) // otp valid for 10min
 
         password_reset_otp_mail(user, otp)
-        
-        return res.status(201).json({ msg: `Kindly check your email for a six digit code`})
 
+        const notification_data:any = {}
+
+        notification_data.title = 'Labspace: OTP Generation'
+        notification_data.body = `Your OTP is ${otp}`
+        notification_data.msg = 'Kindly check your email for a six digit code'
+        notification_data.user_id = user.user_id
+
+        req.notification_data = notification_data
+        
+        next()
     } catch (err:any) {
         console.log('Error occured while generating otp ',err)
         return res.status(500).json({err: 'Error occured while genrating otp ', error: err})
