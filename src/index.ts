@@ -26,7 +26,15 @@ const app = express();
 
 const server = http.createServer(app);
 
-const io:any = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] }});
+const io:any = new Server(server, 
+    { 
+        cors: 
+        { 
+            origin: "*", 
+            methods: ["GET", "POST"] 
+        }
+    }
+);
 
 app.use(express.json());
 app.use(cors(CORS_OPTION));
