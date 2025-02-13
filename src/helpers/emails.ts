@@ -77,7 +77,7 @@ export const admin_account_created_mail = (user: any, password: string) => {
                 <p>To log in to your account, please click the link below:</p>
                 <p><a href="https://labspace-ng.vercel.app/auth/login">https://labspace-ng.vercel.app/auth/login</a></p>
                 <p>We recommend changing your password immediately after logging in to ensure your account's security.</p>
-                <p>For assistance, contact us at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>For assistance, contact us at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -85,7 +85,7 @@ export const admin_account_created_mail = (user: any, password: string) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Admin Account Created",
         html: htmlContent,
@@ -150,7 +150,7 @@ export const user_account_created_mail = (user: any, password: string) => {
                 <p>To log in to your account, please click the link below:</p>
                 <p><a href="https://labspace-ng.vercel.app/auth/login">https://labspace-ng.vercel.app/auth/login</a></p>
                 <p>We recommend changing your password immediately after logging in to ensure your account's security.</p>
-                <p>For assistance, contact us at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>For assistance, contact us at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -159,7 +159,7 @@ export const user_account_created_mail = (user: any, password: string) => {
     `;
     
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: User Account Created",
         html: htmlContent,
@@ -227,7 +227,7 @@ export const account_suspension_mail = (user: any) => {
             <div class="container">
                 <h1>Account Suspended</h1>
                 <p>Hello ${user.first_name},</p>
-                <p>Your account has been suspended. If this was an error, please contact support at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>Your account has been suspended. If this was an error, please contact support at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -235,7 +235,7 @@ export const account_suspension_mail = (user: any) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Account Suspended",
         html: htmlContent,
@@ -303,7 +303,7 @@ export const account_reinstatement_mail = (user: any) => {
             <div class="container">
                 <h1>Account Reinstatement</h1>
                 <p>Hello ${user.first_name},</p>
-                <p>Your account has been reinstated. You can now access and use your account as usual. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>Your account has been reinstated. You can now access and use your account as usual. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -311,7 +311,7 @@ export const account_reinstatement_mail = (user: any) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Account Reinstatement",
         html: htmlContent,
@@ -379,7 +379,7 @@ export const admin_priviledge_removal_mail = (user: any) => {
             <div class="container">
                 <h1>Update to Your Account Privileges</h1>
                 <p>Hello ${user.first_name},</p>
-                <p>Your admin priviledges have been removed. You will no longer have access to administrative features and functions. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>Your admin priviledges have been removed. You will no longer have access to administrative features and functions. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -387,7 +387,7 @@ export const admin_priviledge_removal_mail = (user: any) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Admin Priviledges Removal",
         html: htmlContent,
@@ -455,7 +455,7 @@ export const admin_priviledge_reinstatemnt_mail = (user: any) => {
             <div class="container">
                 <h1>Update to Your Account Privileges</h1>
                 <p>Hello ${user.first_name},</p>
-                <p>We are pleased to inform you that you have been granted admin privileges. You now have access to administrative features and functions, and we trust that you will use these privileges responsibly. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:support@labspace.com">labspace-ng@gmail.com</a>.</p>
+                <p>We are pleased to inform you that you have been granted admin privileges. You now have access to administrative features and functions, and we trust that you will use these privileges responsibly. If you have any questions or concerns, please don't hesitate to contact our support team at <a href="mailto:labspace-ng@gmail.com">labspace-ng@gmail.com</a>.</p>
                 <p>Best regards,</p>
                 <p>The Labspace Team</p>
             </div>
@@ -463,7 +463,7 @@ export const admin_priviledge_reinstatemnt_mail = (user: any) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Admin Priviledges Granted",
         html: htmlContent,
@@ -541,7 +541,7 @@ export const password_reset_otp_mail = (user: any, otp: string) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Password Reset OTP",
         html: htmlContent,
@@ -617,7 +617,7 @@ export const password_reset_success_mail = (user: any) => {
         </html>
     `;
     const mailOptions = {
-        from: { name: "Labspace", address: 'support@labspace.com' },
+        from: { name: "Labspace", address: 'labspace-ng@gmail.com' },
         to: user.email,
         subject: "Labspace: Password Reset Successful",
         html: htmlContent,
