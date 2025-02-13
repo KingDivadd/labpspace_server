@@ -3,7 +3,6 @@ import http from 'http';
 import { Server } from 'socket.io';
 import bodyParser, { text } from 'body-parser';
 import webpush from 'web-push'
-import apn from 'apn'
 import cors from 'cors';
 import colors from 'colors';
 require('colors')
