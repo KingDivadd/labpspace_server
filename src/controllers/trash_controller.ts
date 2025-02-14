@@ -114,7 +114,7 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         })
 
     } catch (err: any) {
-        if (err.code === 'P2003') { // Foreign key constraint error
+        if (err.code === 'P2003' || err.code == 'P2028') { // Foreign key constraint error
             console.log(err)
             return res.status(400).json({
                 err: 'Please try again',
