@@ -62,15 +62,18 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         const {trash_id} = req.params
 
         const trash_exist = await prisma.trash.findUnique({
-            where: {trash_id},
-            include: {
-                deleted_by: {
-                    select: {first_name: true, last_name: true, user_id: true}
+                where: {trash_id},
+                include: {
+                    deleted_by: {
+                        select: {first_name: true, last_name: true, user_id: true}
+                    }
                 }
-            }
-        })
+            })
 
-        if (!trash_exist){return res.status(404).json({err: 'File not found.'})}
+
+        if (!trash_exist){
+            return res.status(404).json({err: 'File not found.'})
+        }
 
         // if (trash_exist?.deleted_by?.user_id !== user_id) {
         //     return res.status(401).json({err: `Only ${trash_exist?.deleted_by?.first_name} ${trash_exist?.deleted_by?.last_name} is authorized to delete selected file.`})
@@ -79,21 +82,30 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         let del_user;
         let del_trash;
 
-        if (trash_exist.deleted_project_id){
-            await Promise.all([
-                prisma.trash.delete({where:{trash_id}}),
-                prisma.activity.deleteMany({where:{project_id:trash_exist.deleted_project_id}}),
-                prisma.project.delete({where: {project_id: trash_exist.deleted_project_id}}),
-                prisma.projectAssignment.deleteMany({where: {project_id: trash_exist.deleted_project_id}})
-                
-            ])
-        }else if (trash_exist.deleted_user_id){
-
-            await prisma.$transaction(async (prisma) => {
-                await prisma.trash.delete({ where: { trash_id } });
-                await prisma.user.delete({ where: { user_id: trash_exist.deleted_user_id || '' } });
-            });
-        }
+        await prisma.$transaction(async (tx) => {
+            if (trash_exist.deleted_project_id) {
+                await Promise.all([
+                    tx.activity.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
+                    tx.task.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
+                    tx.trash.delete({ where: { trash_id } }),
+                    tx.project.delete({ where: { project_id: trash_exist.deleted_project_id } }),
+                    tx.projectAssignment.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
+                ]);
+            } else if (trash_exist.deleted_user_id) {
+                await Promise.all([
+                    tx.session.deleteMany({ where: { user_id: trash_exist.deleted_user_id } }),
+                    tx.activity.deleteMany({ where: { created_by_id: trash_exist.deleted_user_id } }),
+                    tx.project.deleteMany({ where: { project_creator_id: trash_exist.deleted_user_id } }),
+                    tx.projectAssignment.deleteMany({ where: { user_id: trash_exist.deleted_user_id } }),
+                    tx.notificationAssignment.deleteMany({ where: { user_id: trash_exist.deleted_user_id } }),
+                    tx.trash.deleteMany({ where: { deleted_by_id: trash_exist.deleted_user_id } }),
+                    tx.paymentHistory.deleteMany({ where: { added_by_id: trash_exist.deleted_user_id } }),
+                    tx.task.deleteMany({ where: { task_created_by_id: trash_exist.deleted_user_id } }),
+                    tx.trash.delete({ where: { trash_id } }),
+                    tx.user.delete({ where: { user_id: trash_exist.deleted_user_id } }),
+                ]);
+            }
+        });
 
         console.log('delted file ', del_user)
 
@@ -104,11 +116,11 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
     } catch (err: any) {
         if (err.code === 'P2003') { // Foreign key constraint error
             return res.status(400).json({
-                err: 'Cannot delete user due to been assigned to a project',
+                err: 'Please try again',
             });
         }
         console.error('Error deleting trash or user:', err);
-        return res.status(500).json({ err: 'Error deleting trash or user', error: err.message });
+        return res.status(500).json({ err: 'Error deleting selected entity', error: err.message });
     }    
 }
 
