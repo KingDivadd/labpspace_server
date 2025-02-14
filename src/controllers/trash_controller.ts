@@ -85,11 +85,11 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         await prisma.$transaction(async (tx) => {
             if (trash_exist.deleted_project_id) {
                 await Promise.all([
+                    tx.projectAssignment.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.activity.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.task.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.trash.delete({ where: { trash_id } }),
                     tx.project.delete({ where: { project_id: trash_exist.deleted_project_id } }),
-                    tx.projectAssignment.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                 ]);
             } else if (trash_exist.deleted_user_id) {
                 await Promise.all([
@@ -115,6 +115,7 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
 
     } catch (err: any) {
         if (err.code === 'P2003') { // Foreign key constraint error
+            console.log(err)
             return res.status(400).json({
                 err: 'Please try again',
             });
