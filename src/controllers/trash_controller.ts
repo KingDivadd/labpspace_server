@@ -85,6 +85,7 @@ export const delete_selected_trash = async (req:CustomRequest, res: Response) =>
         await prisma.$transaction(async (tx) => {
             if (trash_exist.deleted_project_id) {
                 await Promise.all([
+                    tx.paymentHistory.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.projectAssignment.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.activity.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
                     tx.task.deleteMany({ where: { project_id: trash_exist.deleted_project_id } }),
