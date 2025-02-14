@@ -29,77 +29,116 @@ export const admin_dashboard = async(req: CustomRequest, res: Response)=>{
             prisma.project.findMany({
                 where: projectWhereClause,
                 select: {
-                    project_id: true, cost: true, payments:{select: {amount: true}}
+                    project_id: true, stage:true, cost: true, payments:{select: {amount: true}}
                 }
             }),
 
-            
             prisma.project.findMany({
                 where: projectWhereClause,
                 include: {
                     activities: {
                         include: {
-                            created_by: { // Fetch details of the user who created the activity
+                            created_by: {
                                 select: {
                                     first_name: true,
                                     last_name: true,
                                     email: true,
                                     avatar: true,
                                     title: true,
-                                    is_active: true, is_admin: true, user_id: true
+                                    is_active: true,
+                                    is_admin: true,
+                                    user_id: true,
                                 },
                             },
                         },
                     },
-                    tasks: true, // Include all fields of sub_projects
+                    tasks: true,
                     team: {
                         include: {
-                            user: { // Include user details in team assignments
+                            user: {
                                 select: {
                                     first_name: true,
                                     last_name: true,
                                     email: true,
                                     avatar: true,
                                     title: true,
-                                    is_active: true, is_admin: true, user_id: true
+                                    is_active: true,
+                                    is_admin: true,
+                                    user_id: true,
                                 },
                             },
                         },
                     },
-                    project_creator: { // Optionally include project creator details
+                    project_creator: {
                         select: {
                             first_name: true,
                             last_name: true,
                             email: true,
                             avatar: true,
                             title: true,
-                            is_active: true, is_admin: true, user_id: true
+                            is_active: true,
+                            is_admin: true,
+                            user_id: true,
                         },
                     },
+                    payments: {
+                        select: { amount: true },
+                    },
                 },
-                orderBy:{created_at: 'desc'},
+                orderBy: { created_at: 'desc' },
                 skip: (Math.abs(Number(page_number)) - 1) * no_of_items_per_table,
+                take: no_of_items_per_table, // Ensure pagination limit is applied
             }),
 
         ])
         
-        // const assigned_projects = total_project.filter((project: any) => 
-        //     project.team.some((assignment: any) => assignment.user_id === user_id)
-        // );
-        const project_cost = total_project.reduce((accumulator, current) => {
-            return accumulator + current.cost;
-        }, 0);
-        const completed_projects = total_project.filter((data:any) => data.stage == 'completed' )
+        const assigned_project = total_project.filter((project: any) => project.team 
+        && project.team.some((assignment: any) => assignment.user_id === user_id));
+        
+        console.log(assigned_project)
+
+        const total_project_no = total_project.length
+        
+        const pending_project = total_project.filter((data:any) => data.stage == 'in_progress' ).length
+
+        // Total Project Due
+        // Pending Project
+        // Total Project
+        // Amount Paid
+        // Amount Due
+
+        const project_money = recent_projects.map((project) => {
+            const totalPayments = project.payments.reduce((sum, payment) => sum + payment.amount, 0);
+            const amount_due = project.cost - totalPayments; // Assuming `cost` is a field in the project model
+            return {project_cost:project.cost, amount_paid: totalPayments, amount_due };
+        })
+
+        const project_money_store = project_money.reduce((acc, current) => {
+            acc.total_project_cost += current.project_cost;
+            acc.total_amount_paid += current.amount_paid;
+            acc.total_amount_due += current.amount_due;
+            return acc;
+        }, {
+        total_project_cost: 0,
+        total_amount_paid: 0,
+        total_amount_due: 0
+        });
+
+        const projectsWithAmountDue = recent_projects.map((project) => {
+            const totalPayments = project.payments.reduce((sum, payment) => sum + payment.amount, 0);
+            const amount_due = project.cost - totalPayments; // Assuming `cost` is a field in the project model
+            return { ...project, total_amount_paid: totalPayments, amount_due }; // Add `amount_due` field to the project object
+        })
 
         return res.status(200).json({ 
-            total_no_of_projects: total_project.length, 
-            total_project_cost: project_cost,
-
-            // total_no_of_assigned_projects: assigned_projects.length,
-            total_no_of_completed_projects: completed_projects.length,
-            
-
-            recent_projects: recent_projects,            
+            total_project_due: pending_project,
+            pending_project: pending_project,
+            total_project: total_project_no,
+            total_amount_paid: project_money_store.total_amount_paid,
+            total_amount_due: project_money_store.total_amount_due,
+            total_project_cost: project_money_store.total_project_cost,
+            total_no_of_assigned_projects: assigned_project.length,            
+            recent_projects: projectsWithAmountDue,            
         })
 
     } catch (err:any) {
@@ -142,19 +181,29 @@ export const add_new_member = async(req: CustomRequest, res: Response, next: Nex
 
 export const edit_member = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     const {first_name, last_name, email, title, is_admin, is_active} = req.body
+    // 1. admin can edit every account but not superadmin's
+    // 2. superadmin can edit every account
     try {
-        const role = req.account_holder.user
+        const logged_in_user_id = req.account_holder.user.user_id
         const is_admin = req.account_holder.user.is_admin;
         const is_super_admin = req.account_holder.user.is_super_admin
 
-        if (!role.is_admin) { return res.status(401).json({err: 'Unauthorized to perform operation'}) }        
+        // only admin can edit account
+        if (!is_admin) { 
+            return res.status(401).json({err: 'Unauthorized to perform operation'}) 
+        }        
 
         const {user_id} = req.params
 
         const user_exist = await prisma.user.findFirst({ where: {user_id} })
 
-        if (is_admin && user_exist?.is_super_admin) {
-            return res.status(400).json({err: 'Not authorized perform operation.'})
+        if (!user_exist) {
+            return res.status(404).json({err: 'User not found'})
+        }
+
+        // an admin cannot edit a super admin account
+        if ((logged_in_user_id != user_id) && (!is_super_admin && user_exist.is_admin)) {
+            return res.status(400).json({err: 'Cannot make changes to an admin\'s account.'})
         }
 
         const update: any = {}
@@ -209,32 +258,38 @@ export const edit_member = async(req: CustomRequest, res: Response, next: NextFu
 
 export const delete_member = async (req:CustomRequest, res: Response) => {
     // 1. you should not be able to delete your self.
-    // 2. you should not be able to dele
+    // 2. an admin should not be able to delete another admin
+    // 3. an admin should not edit another admin
+    // 4. a superadmin can perform all operations
     try {
 
         const is_admin = req.account_holder.user.is_admin; 
         const is_super_admin = req.account_holder.user.is_super_admin
 
-        const userId = req.account_holder.user.user_id
+        const logged_in_user_id = req.account_holder.user.user_id
 
         const {user_id} = req.params
 
         const user_exist = await prisma.user.findFirst({ where: {user_id} })
 
-        if (userId === user_exist?.user_id) { return res.status(400).json({err: 'Error deleting own account'}) }
-
-        // if the user to be deleted is an admin, will need a super admin to delete
-
-        if ( (is_admin && user_exist?.is_admin) || (is_admin && user_exist?.is_super_admin) ){
-            return res.status(401).json({err: 'Unathorized to delete accout'})
-        }
-
         if (!user_exist) { return res.status(404).json({err: 'User not found'}) }
 
         if (user_exist.is_trashed){ return res.status(400).json({err: 'User already deleted'})}
 
-        console.log(req.account_holder.user.user_id)
+        // condition 1: cannot delete self account
+        if (logged_in_user_id === user_exist?.user_id) { 
+            return res.status(400).json({err: 'Cannot delete own account'}) 
+        }
+
+        // condition 2: an admin cannot delete another admin account
+        if ((is_admin && !is_super_admin) ){
+            return res.status(401).json({err: 'Unathorized to delete an admin accout'})
+        }
         
+        // condition 3: a superadmin account cannot be deleted
+        if (user_exist.is_super_admin) {
+            return res.status(401).json({err: 'Unathorized to delete accout'})
+        }
 
         const [del_user]  = await Promise.all([
             prisma.user.update({
@@ -248,7 +303,7 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
                     created_at: converted_datetime(),
                     updated_at: converted_datetime(),
                     deleted_user_id: user_id,
-                    deleted_by_id: userId
+                    deleted_by_id: logged_in_user_id
                 }
             })
         ]) 
