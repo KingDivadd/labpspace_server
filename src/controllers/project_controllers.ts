@@ -654,9 +654,9 @@ export const create_project = async (req: CustomRequest, res: Response, next: Ne
         }))
 
         const desc_value = new_project.project_creator_id == user.user_id ? 
-            `New Project with a set ${priority.toUpperCase()} priority has been created by you. You've also assigned the tasks to ${team.length} team member(s). Please proceed with the task execution.`
+            `Project Created.`
             : 
-            `New Project  with a set ${priority.toUpperCase()} priority has been assigned to you and ${team.length} other team members. Please check and proceed with the task execution`
+            `You have been assigned to a new project.`
 
         // Perform bulk inserts in parallel
         const [teams, activitiesResult, notification_result] = await Promise.all([
@@ -760,7 +760,7 @@ export const edit_project = async (req: CustomRequest, res: Response, next: Next
         }
 
         // Add an activity log for the edit
-        const desc_value = `Task "${existing_project.project_title}" was updated by ${user.first_name} ${user.last_name}.`;
+        const desc_value = `Task was updated by ${user.first_name} ${user.last_name}.`;
 
         const activity_log = await prisma.activity.create({
             data: {
