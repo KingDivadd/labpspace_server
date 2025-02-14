@@ -282,8 +282,8 @@ export const delete_member = async (req:CustomRequest, res: Response) => {
         }
 
         // condition 2: an admin cannot delete another admin account
-        if ((is_admin && !is_super_admin) ){
-            return res.status(401).json({err: 'Unathorized to delete an admin accout'})
+        if ((is_admin && !is_super_admin) && !(user_exist.is_admin)){
+            return res.status(401).json({err: 'Unathorized to delete accout'})
         }
         
         // condition 3: a superadmin account cannot be deleted
